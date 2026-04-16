@@ -1,0 +1,253 @@
+{
+  "candidate_count": 15,
+  "candidates": [
+    {
+      "url": "https://www.mainroads.wa.gov.au/498fab/globalassets/technical-commercial/local-government-funding/road-safety-programs/low-cost-urban-road-safety-program-strategy-and-implementation-framework.pdf",
+      "source": "seed_subpage",
+      "score": 4,
+      "jurisdiction": "Western Australia",
+      "authority": "www.mainroads.wa.gov.au",
+      "from_page": "https://www.mainroads.wa.gov.au/road-safety/safe-systems-for-local-government-program/"
+    },
+    {
+      "url": "https://www.mainroads.wa.gov.au/490d5d/globalassets/about-us/our-organisation/main-roads-annual-report-2025-interactive-version.pdf",
+      "source": "seed_subpage",
+      "score": 3,
+      "jurisdiction": "Western Australia",
+      "authority": "www.mainroads.wa.gov.au",
+      "from_page": "https://www.mainroads.wa.gov.au/technical-commercial/technical-library/road-traffic-engineering/traffic-management/"
+    },
+    {
+      "url": "https://www.mainroads.wa.gov.au/4a1f0c/globalassets/technical-commercial/road-safety/operational-safety-risk-evaluation.pdf",
+      "source": "seed_subpage",
+      "score": 3,
+      "jurisdiction": "Western Australia",
+      "authority": "www.mainroads.wa.gov.au",
+      "from_page": "https://www.mainroads.wa.gov.au/road-safety/road-safety-management-at-main-roads/"
+    },
+    {
+      "url": "https://www.mainroads.wa.gov.au/4a22a0/globalassets/heavy-vehicles/agricultural-vehicles/towed-agricultural-implements-crossings-traffic-management-requirements.pdf",
+      "source": "seed_subpage",
+      "score": 3,
+      "jurisdiction": "Western Australia",
+      "authority": "www.mainroads.wa.gov.au",
+      "from_page": "https://www.mainroads.wa.gov.au/heavy-vehicles/agricultural-vehicles/"
+    },
+    {
+      "url": "https://www.mainroads.wa.gov.au/4ab911/globalassets/technical-commercial/road-safety/crash-investigations/policy-and-guidelines-for-road-safety-assessments-of-high-risk-routes-and-intersections.pdf?v=4ab911",
+      "source": "seed_subpage",
+      "score": 3,
+      "jurisdiction": "Western Australia",
+      "authority": "www.mainroads.wa.gov.au",
+      "from_page": "https://www.mainroads.wa.gov.au/road-safety/road-safety-auditing-and-crash-investigation/"
+    },
+    {
+      "url": "https://www.mainroads.wa.gov.au/48da38/globalassets/technical-commercial/technical-library/tender-preparation/standard-method-of-measurement/standard-method-of-measurement-smm-for-construction-works-january-2026.pdf",
+      "source": "seed_subpage",
+      "score": 2,
+      "jurisdiction": "Western Australia",
+      "authority": "www.mainroads.wa.gov.au",
+      "from_page": "https://www.mainroads.wa.gov.au/technical-commercial/tender-preparation/"
+    },
+    {
+      "url": "https://www.mainroads.wa.gov.au/492d8e/globalassets/technical-commercial/road-safety/treatment-resource-guide.pdf",
+      "source": "seed_subpage",
+      "score": 2,
+      "jurisdiction": "Western Australia",
+      "authority": "www.mainroads.wa.gov.au",
+      "from_page": "https://www.mainroads.wa.gov.au/road-safety/road-safety-management-at-main-roads/"
+    },
+    {
+      "url": "https://www.mainroads.wa.gov.au/49a013/globalassets/technical-commercial/road-safety/crash-investigations/road-safety-management-planning-process-guide.pdf",
+      "source": "seed_subpage",
+      "score": 2,
+      "jurisdiction": "Western Australia",
+      "authority": "www.mainroads.wa.gov.au",
+      "from_page": "https://www.mainroads.wa.gov.au/road-safety/safe-systems-for-local-government-program/"
+    },
+    {
+      "url": "https://www.mainroads.wa.gov.au/49c1d4/globalassets/technical-commercial/technical-library/tender-preparation/standard-method-of-measurement/new-standard-method-of-measurement-smm-for-construction-works-january-2024-final.pdf",
+      "source": "seed_subpage",
+      "score": 2,
+      "jurisdiction": "Western Australia",
+      "authority": "www.mainroads.wa.gov.au",
+      "from_page": "https://www.mainroads.wa.gov.au/technical-commercial/tender-preparation/"
+    },
+    {
+      "url": "https://www.mainroads.wa.gov.au/4a1f54/globalassets/technical-commercial/road-safety/road-safety-management-rosma-policy.pdf",
+      "source": "seed_subpage",
+      "score": 2,
+      "jurisdiction": "Western Australia",
+      "authority": "www.mainroads.wa.gov.au",
+      "from_page": "https://www.mainroads.wa.gov.au/road-safety/road-safety-management-at-main-roads/"
+    },
+    {
+      "url": "https://www.mainroads.wa.gov.au/4af6a8/globalassets/technical-commercial/road-safety/crash-investigations-policy-and-application-guidelines.pdf",
+      "source": "seed_subpage",
+      "score": 2,
+      "jurisdiction": "Western Australia",
+      "authority": "www.mainroads.wa.gov.au",
+      "from_page": "https://www.mainroads.wa.gov.au/road-safety/road-safety-auditing-and-crash-investigation/"
+    },
+    {
+      "url": "https://www.mainroads.wa.gov.au/4af6ad/globalassets/technical-commercial/road-safety/policy-and-guidelines-for-road-safety-audit.pdf",
+      "source": "seed_subpage",
+      "score": 2,
+      "jurisdiction": "Western Australia",
+      "authority": "www.mainroads.wa.gov.au",
+      "from_page": "https://www.mainroads.wa.gov.au/road-safety/road-safety-auditing-and-crash-investigation/"
+    },
+    {
+      "url": "https://www.safeworkaustralia.gov.au/sites/default/files/2024-11/model_code_of_practice-construction_work-nov24.pdf",
+      "source": "seed_page",
+      "score": 2,
+      "jurisdiction": "Federal / National",
+      "authority": "www.safeworkaustralia.gov.au",
+      "seed": "https://www.safeworkaustralia.gov.au/doc/model-code-practice-construction-work"
+    },
+    {
+      "url": "https://www.wa.gov.au/system/files/2021-07/Driving-Change-Road-Safety-Strategy-2020_2.pdf",
+      "source": "seed_subpage",
+      "score": 2,
+      "jurisdiction": "Western Australia",
+      "authority": "www.wa.gov.au",
+      "from_page": "https://www.mainroads.wa.gov.au/road-safety/"
+    },
+    {
+      "url": "https://www.wa.gov.au/system/files/2025-01/rsc177_road_safety_action_plan_updated_23.01.25.pdf",
+      "source": "seed_subpage",
+      "score": 2,
+      "jurisdiction": "Western Australia",
+      "authority": "www.wa.gov.au",
+      "from_page": "https://www.mainroads.wa.gov.au/road-safety/"
+    }
+  ],
+  "grouped_candidates": {
+    "Federal / National": [
+      {
+        "url": "https://www.safeworkaustralia.gov.au/sites/default/files/2024-11/model_code_of_practice-construction_work-nov24.pdf",
+        "source": "seed_page",
+        "score": 2,
+        "jurisdiction": "Federal / National",
+        "authority": "www.safeworkaustralia.gov.au",
+        "seed": "https://www.safeworkaustralia.gov.au/doc/model-code-practice-construction-work"
+      }
+    ],
+    "Western Australia": [
+      {
+        "url": "https://www.mainroads.wa.gov.au/498fab/globalassets/technical-commercial/local-government-funding/road-safety-programs/low-cost-urban-road-safety-program-strategy-and-implementation-framework.pdf",
+        "source": "seed_subpage",
+        "score": 4,
+        "jurisdiction": "Western Australia",
+        "authority": "www.mainroads.wa.gov.au",
+        "from_page": "https://www.mainroads.wa.gov.au/road-safety/safe-systems-for-local-government-program/"
+      },
+      {
+        "url": "https://www.mainroads.wa.gov.au/490d5d/globalassets/about-us/our-organisation/main-roads-annual-report-2025-interactive-version.pdf",
+        "source": "seed_subpage",
+        "score": 3,
+        "jurisdiction": "Western Australia",
+        "authority": "www.mainroads.wa.gov.au",
+        "from_page": "https://www.mainroads.wa.gov.au/technical-commercial/technical-library/road-traffic-engineering/traffic-management/"
+      },
+      {
+        "url": "https://www.mainroads.wa.gov.au/4a1f0c/globalassets/technical-commercial/road-safety/operational-safety-risk-evaluation.pdf",
+        "source": "seed_subpage",
+        "score": 3,
+        "jurisdiction": "Western Australia",
+        "authority": "www.mainroads.wa.gov.au",
+        "from_page": "https://www.mainroads.wa.gov.au/road-safety/road-safety-management-at-main-roads/"
+      },
+      {
+        "url": "https://www.mainroads.wa.gov.au/4a22a0/globalassets/heavy-vehicles/agricultural-vehicles/towed-agricultural-implements-crossings-traffic-management-requirements.pdf",
+        "source": "seed_subpage",
+        "score": 3,
+        "jurisdiction": "Western Australia",
+        "authority": "www.mainroads.wa.gov.au",
+        "from_page": "https://www.mainroads.wa.gov.au/heavy-vehicles/agricultural-vehicles/"
+      },
+      {
+        "url": "https://www.mainroads.wa.gov.au/4ab911/globalassets/technical-commercial/road-safety/crash-investigations/policy-and-guidelines-for-road-safety-assessments-of-high-risk-routes-and-intersections.pdf?v=4ab911",
+        "source": "seed_subpage",
+        "score": 3,
+        "jurisdiction": "Western Australia",
+        "authority": "www.mainroads.wa.gov.au",
+        "from_page": "https://www.mainroads.wa.gov.au/road-safety/road-safety-auditing-and-crash-investigation/"
+      },
+      {
+        "url": "https://www.mainroads.wa.gov.au/48da38/globalassets/technical-commercial/technical-library/tender-preparation/standard-method-of-measurement/standard-method-of-measurement-smm-for-construction-works-january-2026.pdf",
+        "source": "seed_subpage",
+        "score": 2,
+        "jurisdiction": "Western Australia",
+        "authority": "www.mainroads.wa.gov.au",
+        "from_page": "https://www.mainroads.wa.gov.au/technical-commercial/tender-preparation/"
+      },
+      {
+        "url": "https://www.mainroads.wa.gov.au/492d8e/globalassets/technical-commercial/road-safety/treatment-resource-guide.pdf",
+        "source": "seed_subpage",
+        "score": 2,
+        "jurisdiction": "Western Australia",
+        "authority": "www.mainroads.wa.gov.au",
+        "from_page": "https://www.mainroads.wa.gov.au/road-safety/road-safety-management-at-main-roads/"
+      },
+      {
+        "url": "https://www.mainroads.wa.gov.au/49a013/globalassets/technical-commercial/road-safety/crash-investigations/road-safety-management-planning-process-guide.pdf",
+        "source": "seed_subpage",
+        "score": 2,
+        "jurisdiction": "Western Australia",
+        "authority": "www.mainroads.wa.gov.au",
+        "from_page": "https://www.mainroads.wa.gov.au/road-safety/safe-systems-for-local-government-program/"
+      },
+      {
+        "url": "https://www.mainroads.wa.gov.au/49c1d4/globalassets/technical-commercial/technical-library/tender-preparation/standard-method-of-measurement/new-standard-method-of-measurement-smm-for-construction-works-january-2024-final.pdf",
+        "source": "seed_subpage",
+        "score": 2,
+        "jurisdiction": "Western Australia",
+        "authority": "www.mainroads.wa.gov.au",
+        "from_page": "https://www.mainroads.wa.gov.au/technical-commercial/tender-preparation/"
+      },
+      {
+        "url": "https://www.mainroads.wa.gov.au/4a1f54/globalassets/technical-commercial/road-safety/road-safety-management-rosma-policy.pdf",
+        "source": "seed_subpage",
+        "score": 2,
+        "jurisdiction": "Western Australia",
+        "authority": "www.mainroads.wa.gov.au",
+        "from_page": "https://www.mainroads.wa.gov.au/road-safety/road-safety-management-at-main-roads/"
+      },
+      {
+        "url": "https://www.mainroads.wa.gov.au/4af6a8/globalassets/technical-commercial/road-safety/crash-investigations-policy-and-application-guidelines.pdf",
+        "source": "seed_subpage",
+        "score": 2,
+        "jurisdiction": "Western Australia",
+        "authority": "www.mainroads.wa.gov.au",
+        "from_page": "https://www.mainroads.wa.gov.au/road-safety/road-safety-auditing-and-crash-investigation/"
+      },
+      {
+        "url": "https://www.mainroads.wa.gov.au/4af6ad/globalassets/technical-commercial/road-safety/policy-and-guidelines-for-road-safety-audit.pdf",
+        "source": "seed_subpage",
+        "score": 2,
+        "jurisdiction": "Western Australia",
+        "authority": "www.mainroads.wa.gov.au",
+        "from_page": "https://www.mainroads.wa.gov.au/road-safety/road-safety-auditing-and-crash-investigation/"
+      },
+      {
+        "url": "https://www.wa.gov.au/system/files/2021-07/Driving-Change-Road-Safety-Strategy-2020_2.pdf",
+        "source": "seed_subpage",
+        "score": 2,
+        "jurisdiction": "Western Australia",
+        "authority": "www.wa.gov.au",
+        "from_page": "https://www.mainroads.wa.gov.au/road-safety/"
+      },
+      {
+        "url": "https://www.wa.gov.au/system/files/2025-01/rsc177_road_safety_action_plan_updated_23.01.25.pdf",
+        "source": "seed_subpage",
+        "score": 2,
+        "jurisdiction": "Western Australia",
+        "authority": "www.wa.gov.au",
+        "from_page": "https://www.mainroads.wa.gov.au/road-safety/"
+      }
+    ]
+  },
+  "downloaded_count": 0,
+  "downloaded": []
+}

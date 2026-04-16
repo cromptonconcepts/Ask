@@ -1,0 +1,1078 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Traffic Review Automation</title>
+    <style>
+        :root {
+            --bg: #f3efe7;
+            --ink: #16324a;
+            --muted: #5b6f82;
+            --line: #d8dfdf;
+            --panel: rgba(255, 255, 255, 0.88);
+            --panel-strong: #ffffff;
+            --accent: #0f6c78;
+            --accent-2: #b65f27;
+            --good: #1d6f43;
+            --warn: #915512;
+            --bad: #a22835;
+        }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            font-family: Georgia, "Times New Roman", serif;
+            color: var(--ink);
+            background:
+                radial-gradient(circle at top left, rgba(15, 108, 120, 0.14), transparent 28%),
+                radial-gradient(circle at top right, rgba(182, 95, 39, 0.12), transparent 30%),
+                linear-gradient(180deg, #f7f4ee 0%, var(--bg) 100%);
+            min-height: 100vh;
+        }
+        .shell {
+            width: min(1380px, calc(100vw - 40px));
+            margin: 24px auto 32px auto;
+        }
+        .hero {
+            padding: 28px;
+            border: 1px solid rgba(22, 50, 74, 0.08);
+            border-radius: 28px;
+            background:
+                radial-gradient(circle at top right, rgba(255, 255, 255, 0.76), transparent 25%),
+                linear-gradient(135deg, #e1f1ef 0%, #f8f5ec 45%, #f5dfd2 100%);
+            box-shadow: 0 24px 64px rgba(34, 47, 62, 0.08);
+        }
+        .hero-kicker {
+            display: inline-flex;
+            padding: 7px 12px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.72);
+            border: 1px solid rgba(15, 108, 120, 0.16);
+            font-size: 0.76rem;
+            font-weight: 700;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--accent);
+        }
+        h1 {
+            margin: 16px 0 8px 0;
+            font-size: clamp(2rem, 4vw, 3.2rem);
+            line-height: 0.98;
+            letter-spacing: -0.03em;
+            font-weight: 700;
+        }
+        .hero p {
+            max-width: 900px;
+            margin: 0;
+            font-size: 1.02rem;
+            line-height: 1.7;
+            color: #3b5369;
+        }
+        .hero-meta {
+            margin-top: 18px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .meta-chip {
+            display: inline-flex;
+            align-items: center;
+            padding: 8px 12px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.78);
+            border: 1px solid rgba(22, 50, 74, 0.08);
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: #29506c;
+        }
+        .topbar {
+            display: grid;
+            grid-template-columns: 1.15fr 0.85fr;
+            gap: 18px;
+            margin-top: 18px;
+        }
+        .panel {
+            background: var(--panel);
+            border: 1px solid rgba(22, 50, 74, 0.08);
+            border-radius: 24px;
+            padding: 20px;
+            box-shadow: 0 18px 44px rgba(34, 47, 62, 0.06);
+            backdrop-filter: blur(8px);
+        }
+        .panel h2 {
+            margin: 0 0 12px 0;
+            font-size: 0.92rem;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: #43627c;
+        }
+        .panel p {
+            margin: 0;
+            color: var(--muted);
+            line-height: 1.55;
+            font-size: 0.88rem;
+        }
+        .status-row,
+        .actions-row,
+        .inline-fields {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        .status-pill {
+            display: inline-flex;
+            align-items: center;
+            padding: 8px 12px;
+            border-radius: 999px;
+            font-size: 0.82rem;
+            font-weight: 700;
+            border: 1px solid transparent;
+            background: #f7fbff;
+            color: #355f93;
+        }
+        .status-pill.good { background: #eef8f1; color: var(--good); border-color: #c3e0ca; }
+        .status-pill.warn { background: #fff8ec; color: var(--warn); border-color: #f0d49d; }
+        .status-pill.bad { background: #fff2f3; color: var(--bad); border-color: #f1c7cc; }
+        .btn,
+        button {
+            appearance: none;
+            border: 0;
+            border-radius: 16px;
+            padding: 12px 16px;
+            font-size: 0.92rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform 0.15s ease, opacity 0.2s ease, background 0.2s ease;
+        }
+        .btn:hover,
+        button:hover { transform: translateY(-1px); }
+        .btn:disabled,
+        button:disabled { opacity: 0.5; cursor: default; transform: none; }
+        .btn-primary {
+            background: linear-gradient(180deg, #0f6c78 0%, #0b5660 100%);
+            color: #fff;
+        }
+        .btn-secondary {
+            background: linear-gradient(180deg, #b65f27 0%, #934a1f 100%);
+            color: #fff;
+        }
+        .btn-ghost {
+            background: #f6fafc;
+            border: 1px solid #d6e1ea;
+            color: #234d6a;
+        }
+        .workspace {
+            display: grid;
+            grid-template-columns: minmax(380px, 0.9fr) minmax(460px, 1.15fr);
+            gap: 18px;
+            margin-top: 18px;
+            align-items: start;
+        }
+        .stack {
+            display: grid;
+            gap: 18px;
+        }
+        .section-grid {
+            display: grid;
+            gap: 14px;
+        }
+        .doc-card {
+            padding: 16px;
+            border-radius: 18px;
+            border: 1px solid rgba(22, 50, 74, 0.08);
+            background: var(--panel-strong);
+        }
+        .doc-card h3 {
+            margin: 0 0 10px 0;
+            font-size: 1rem;
+            color: #173a59;
+        }
+        label {
+            display: block;
+            margin-bottom: 6px;
+            font-size: 0.76rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: #5c7186;
+        }
+        select,
+        input[type="text"],
+        input[type="password"],
+        input[type="file"],
+        textarea {
+            width: 100%;
+            padding: 12px 14px;
+            border: 1px solid #d7e1ea;
+            border-radius: 14px;
+            background: #fff;
+            color: var(--ink);
+            font-size: 0.95rem;
+            font-family: inherit;
+        }
+        textarea {
+            min-height: 120px;
+            resize: vertical;
+            line-height: 1.55;
+        }
+        select:focus,
+        input:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #89abd3;
+            box-shadow: 0 0 0 3px rgba(59, 111, 167, 0.14);
+        }
+        .divider {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 12px 0;
+            color: #6a7e92;
+            font-size: 0.74rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+        .divider::before,
+        .divider::after {
+            content: "";
+            flex: 1;
+            height: 1px;
+            background: #d7e1ea;
+        }
+        .hint-list {
+            margin: 0;
+            padding-left: 18px;
+            color: var(--muted);
+            font-size: 0.9rem;
+            line-height: 1.65;
+        }
+        .report-shell {
+            display: grid;
+            gap: 14px;
+        }
+        .report-placeholder,
+        .report-status,
+        .report-section,
+        .finding-card {
+            border-radius: 18px;
+            border: 1px solid rgba(22, 50, 74, 0.08);
+            background: var(--panel-strong);
+            padding: 18px;
+        }
+        .report-placeholder,
+        .report-status {
+            color: var(--muted);
+            line-height: 1.6;
+            font-size: 0.92rem;
+        }
+        .report-status.running {
+            background: #fff8ec;
+            color: var(--warn);
+            border-color: #f0d49d;
+        }
+        .report-status.good {
+            background: #eef8f1;
+            color: var(--good);
+            border-color: #c3e0ca;
+        }
+        .report-status.bad {
+            background: #fff2f3;
+            color: var(--bad);
+            border-color: #f1c7cc;
+        }
+        .report-section h3,
+        .finding-card h3 {
+            margin: 0 0 10px 0;
+            font-size: 0.84rem;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: #43627c;
+        }
+        .report-section p,
+        .finding-card p {
+            margin: 0;
+            font-size: 0.92rem;
+            line-height: 1.65;
+            color: #344b60;
+        }
+        .report-list {
+            margin: 0;
+            padding-left: 18px;
+            color: #344b60;
+            line-height: 1.65;
+        }
+        .finding-head {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            align-items: flex-start;
+            flex-wrap: wrap;
+            margin-bottom: 10px;
+        }
+        .finding-title {
+            margin: 0;
+            font-size: 1rem;
+            color: #173a59;
+        }
+        .severity {
+            display: inline-flex;
+            align-items: center;
+            padding: 6px 10px;
+            border-radius: 999px;
+            font-size: 0.74rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+        .severity-critical,
+        .severity-high { background: #fff2f3; color: var(--bad); }
+        .severity-medium { background: #fff8ec; color: var(--warn); }
+        .severity-low { background: #eef8f1; color: var(--good); }
+        .finding-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin: 12px 0;
+        }
+        .mini-pill {
+            display: inline-flex;
+            align-items: center;
+            padding: 5px 9px;
+            border-radius: 999px;
+            background: #eef5ff;
+            border: 1px solid #d0dced;
+            color: #29506c;
+            font-size: 0.76rem;
+            font-weight: 700;
+        }
+        .subhead {
+            margin: 12px 0 6px 0;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: #5c7186;
+        }
+        .sources-grid {
+            display: grid;
+            gap: 10px;
+        }
+        .source-item {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            align-items: center;
+            flex-wrap: wrap;
+            padding: 14px;
+            border-radius: 16px;
+            background: #f8fbfd;
+            border: 1px solid #d7e1ea;
+        }
+        .source-item strong { display: block; margin-bottom: 4px; }
+        .source-item span { display: block; color: var(--muted); font-size: 0.84rem; }
+        pre {
+            margin: 0;
+            padding: 16px;
+            border-radius: 16px;
+            background: #f7fafb;
+            border: 1px solid #d7e1ea;
+            white-space: pre-wrap;
+            word-break: break-word;
+            font-size: 0.83rem;
+            line-height: 1.6;
+            color: #30485d;
+        }
+        .small-note {
+            font-size: 0.8rem;
+            color: var(--muted);
+            line-height: 1.5;
+        }
+        @media (max-width: 1100px) {
+            .topbar,
+            .workspace,
+            .llm-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        @media (max-width: 700px) {
+            .shell {
+                width: min(100vw - 20px, 1000px);
+                margin: 10px auto 22px auto;
+            }
+            .hero,
+            .panel,
+            .doc-card,
+            .report-placeholder,
+            .report-status,
+            .report-section,
+            .finding-card {
+                border-radius: 18px;
+                padding: 16px;
+            }
+            .actions-row,
+            .inline-fields {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .btn,
+            button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="shell">
+        <section class="hero">
+            <span class="hero-kicker">All-in-One Review Interface</span>
+            <h1>Automate TGS, TMP, and CTMP review in one screen</h1>
+            <p>This dashboard handles backend connectivity, reference standards in drive_docs, inference mode selection, uploaded project documents, and the structured review report in one workflow. Auto mode tries PAID Gemini first, then FREE Gemini, then falls back to OLLAMA only as the last resort.</p>
+            <div class="hero-meta">
+                <span class="meta-chip">TGS vs TMP alignment</span>
+                <span class="meta-chip">Guideline compliance</span>
+                <span class="meta-chip">Discrepancy detection</span>
+                <span class="meta-chip">Correction-ready output</span>
+            </div>
+        </section>
+
+        <section class="topbar">
+            <div class="panel">
+                <h2>Connection</h2>
+                <div class="status-row" style="margin-bottom: 12px;">
+                    <span id="backendStatus" class="status-pill warn">Checking backend...</span>
+                    <span id="launcherStatus" class="status-pill">Launcher status unknown</span>
+                    <span id="indexStatus" class="status-pill">Index status unknown</span>
+                </div>
+                <div class="inline-fields">
+                    <div style="flex: 1 1 300px;">
+                        <label for="apiBaseInput">Backend API base</label>
+                        <input id="apiBaseInput" type="text" spellcheck="false" placeholder="http://localhost:5000">
+                    </div>
+                </div>
+                <div class="actions-row" style="margin-top: 12px;">
+                    <button id="saveApiBaseBtn" class="btn btn-ghost" type="button">Save API URL</button>
+                    <button id="startBackendBtn" class="btn btn-secondary" type="button">Start backend</button>
+                    <button id="retryConnectionBtn" class="btn btn-primary" type="button">Retry connection</button>
+                    <button id="reloadIndexBtn" class="btn btn-secondary" type="button">Refresh reference index</button>
+                </div>
+                <p class="small-note" style="margin-top: 12px;">drive_docs is treated as the indexed standards library. Use Start backend to call the local launcher on port 5001, then refresh the reference index if you need a fresh standards scan. If the launcher itself is offline, start it once with Start TTM Ask.vbs or run_ttm_ask.ps1.</p>
+            </div>
+
+            <div class="panel">
+                <h2>Inference</h2>
+                <div class="section-grid">
+                    <div>
+                        <label for="llmModeSelect">Review execution mode</label>
+                        <select id="llmModeSelect">
+                            <option value="auto">Auto: PAID → FREE → OLLAMA</option>
+                            <option value="paid">PAID Gemini</option>
+                            <option value="free">FREE Gemini</option>
+                            <option value="local">OLLAMA only</option>
+                        </select>
+                    </div>
+                    <div class="inline-fields">
+                        <div style="flex: 1 1 220px;">
+                            <label for="apiKey1Input">PAID Gemini key</label>
+                            <input id="apiKey1Input" type="password" spellcheck="false" placeholder="Stored only in this browser">
+                        </div>
+                        <div style="flex: 1 1 220px;">
+                            <label for="apiKey2Input">FREE Gemini key</label>
+                            <input id="apiKey2Input" type="password" spellcheck="false" placeholder="Stored only in this browser">
+                        </div>
+                    </div>
+                    <p id="llmPolicyText" class="small-note">Auto mode will try PAID first, then FREE, then OLLAMA as the last resort.</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="workspace">
+            <div class="stack">
+                <div class="panel">
+                    <h2>Project Inputs</h2>
+                    <p class="small-note" style="margin-bottom: 14px;">Upload the project documents here. Indexed documents are the standards and guidance set from drive_docs, not project TGS, TMP, or CTMP inputs.</p>
+                    <div class="section-grid">
+                        <div class="doc-card">
+                            <h3>TGS</h3>
+                            <label for="reviewTgsFile">Upload TGS PDF</label>
+                            <input id="reviewTgsFile" type="file" accept=".pdf,application/pdf">
+                        </div>
+                        <div class="doc-card">
+                            <h3>TMP</h3>
+                            <label for="reviewTmpFile">Upload TMP PDF</label>
+                            <input id="reviewTmpFile" type="file" accept=".pdf,application/pdf">
+                        </div>
+                        <div class="doc-card">
+                            <h3>CTMP</h3>
+                            <label for="reviewCtmpFile">Upload CTMP PDF</label>
+                            <input id="reviewCtmpFile" type="file" accept=".pdf,application/pdf">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="panel">
+                    <h2>Automation</h2>
+                    <div class="section-grid">
+                        <div>
+                            <label for="reviewAdditionalFocus">Additional focus areas</label>
+                            <textarea id="reviewAdditionalFocus" placeholder="Examples: bus stop impacts, night works, cyclist detours, traffic controller positioning, detour staging, emergency access."></textarea>
+                        </div>
+                        <div class="inline-fields">
+                            <label style="display: inline-flex; gap: 8px; align-items: center; margin: 0; font-size: 0.84rem; font-weight: 700; text-transform: none; letter-spacing: normal; color: #35506a;">
+                                <input id="refreshIndexBeforeRun" type="checkbox">
+                                Refresh the reference index before review
+                            </label>
+                        </div>
+                        <div class="inline-fields">
+                            <label style="display: inline-flex; gap: 8px; align-items: center; margin: 0; font-size: 0.84rem; font-weight: 700; text-transform: none; letter-spacing: normal; color: #35506a;">
+                                <input id="enableImageScan" type="checkbox" checked>
+                                Enable image scan
+                            </label>
+                        </div>
+                        <div class="inline-fields">
+                            <div style="flex: 1 1 220px;">
+                                <label for="imageScanModeSelect">Image scan source</label>
+                                <select id="imageScanModeSelect">
+                                    <option value="auto">Auto (prefer TGS, fallback TMP)</option>
+                                    <option value="tmp">TMP only (for embedded TGS screenshots)</option>
+                                    <option value="tgs">TGS only</option>
+                                    <option value="ctmp">CTMP only</option>
+                                    <option value="all">All uploaded PDFs</option>
+                                </select>
+                            </div>
+                            <div style="flex: 0 0 190px;">
+                                <label for="maxImagesPerPdfInput">Max images per scanned PDF</label>
+                                <input id="maxImagesPerPdfInput" type="number" min="1" max="12" step="1" value="4">
+                            </div>
+                        </div>
+                        <ul class="hint-list">
+                            <li>Upload any one or more project documents: TGS, TMP, and/or CTMP.</li>
+                            <li>If only one document is provided, the review will assess that document against the indexed standards and flag missing cross-document checks as assumptions or gaps.</li>
+                            <li>Set image scan source to TMP when TGS drawings are embedded as screenshots inside TMP.</li>
+                            <li>drive_docs is used as the standards corpus for reference retrieval.</li>
+                            <li>The report prioritizes concrete corrections rather than freeform commentary.</li>
+                        </ul>
+                        <div class="actions-row">
+                            <button id="runReviewBtn" class="btn btn-primary" type="button">Run automated review</button>
+                            <button id="openAssistantBtn" class="btn btn-ghost" type="button">Open Assistance tab</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="panel">
+                <h2>Review Report</h2>
+                <div class="report-shell">
+                    <div id="reportStatus" class="report-status">Waiting for review input.</div>
+                    <div id="reportContent" class="report-placeholder">The automated report will appear here after the review completes. It includes overview, assumptions, findings, recommendations, sources, and the full markdown export.</div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        let apiBase = localStorage.getItem('ttmAskReviewApiBase') || 'http://127.0.0.1:5000';
+        const launcherBase = 'http://127.0.0.1:5001';
+        const REVIEW_TIMEOUT_MS = 12 * 60 * 1000;
+        let healthPollTimer = null;
+        let reviewProgressTimer = null;
+
+        function shouldUseCurrentOrigin() {
+            return window.location.protocol.startsWith('http') && window.location.port === '5000';
+        }
+
+        function getLiveAppUrl() {
+            return `${getApiBase()}/`;
+        }
+
+        async function redirectToLiveAppIfNeeded() {
+            const currentUrl = window.location.href;
+            const liveAppUrl = getLiveAppUrl();
+            const openedFromFile = window.location.protocol === 'file:';
+            const wrongOrigin = window.location.protocol.startsWith('http') && window.location.origin !== getApiBase();
+
+            if (!openedFromFile && !wrongOrigin) {
+                return false;
+            }
+
+            if (currentUrl !== liveAppUrl) {
+                window.location.replace(liveAppUrl);
+                return true;
+            }
+
+            try {
+                const response = await fetch(`${getApiBase()}/health`, { cache: 'no-store' });
+                if (!response.ok) {
+                    return false;
+                }
+            } catch (_) {
+                return false;
+            }
+
+            return false;
+        }
+
+        function getApiBase() {
+            return apiBase.replace(/\/+$/, '');
+        }
+
+        function escapeHtml(value) {
+            return String(value)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        function setBackendStatus(message, tone = 'warn') {
+            const el = document.getElementById('backendStatus');
+            el.textContent = message;
+            el.className = `status-pill ${tone}`;
+        }
+
+        function setLauncherStatus(message, tone = '') {
+            const el = document.getElementById('launcherStatus');
+            el.textContent = message;
+            el.className = tone ? `status-pill ${tone}` : 'status-pill';
+        }
+
+        function setIndexStatus(message, tone = '') {
+            const el = document.getElementById('indexStatus');
+            el.textContent = message;
+            el.className = tone ? `status-pill ${tone}` : 'status-pill';
+        }
+
+        function setReportStatus(message, tone = '') {
+            const el = document.getElementById('reportStatus');
+            el.textContent = message;
+            el.className = tone ? `report-status ${tone}` : 'report-status';
+        }
+
+        function formatDuration(totalSeconds) {
+            const safeSeconds = Math.max(0, Number(totalSeconds) || 0);
+            const hrs = Math.floor(safeSeconds / 3600);
+            const mins = Math.floor((safeSeconds % 3600) / 60);
+            const secs = Math.floor(safeSeconds % 60);
+            if (hrs > 0) return `${hrs}h ${mins}m`;
+            if (mins > 0) return `${mins}m ${secs}s`;
+            return `${secs}s`;
+        }
+
+        function stopReviewProgressPolling() {
+            if (reviewProgressTimer) {
+                clearInterval(reviewProgressTimer);
+                reviewProgressTimer = null;
+            }
+        }
+
+        async function refreshReviewProgress() {
+            try {
+                const response = await fetch(`${getApiBase()}/review-progress`, { cache: 'no-store' });
+                if (!response.ok) return;
+                const data = await response.json();
+                if (!data || !data.active) return;
+                const percent = Number(data.percent || 0);
+                const pctText = Number.isFinite(percent) ? ` (${Math.max(0, Math.min(100, Math.round(percent)))}%)` : '';
+                const stage = String(data.stage || 'running').replace(/_/g, ' ');
+                const message = String(data.message || 'Review in progress');
+                const elapsed = Number(data.elapsed_seconds || 0);
+                const eta = data.eta_seconds;
+                const etaText = Number.isFinite(Number(eta))
+                    ? ` • ETA: ${formatDuration(Number(eta))}`
+                    : '';
+                const elapsedText = ` • elapsed: ${formatDuration(elapsed)}`;
+                setReportStatus(`${message}${pctText} • stage: ${stage}${elapsedText}${etaText}`, 'running');
+            } catch (_) {
+            }
+        }
+
+        function startReviewProgressPolling() {
+            stopReviewProgressPolling();
+            reviewProgressTimer = setInterval(() => {
+                refreshReviewProgress();
+            }, 1500);
+            refreshReviewProgress();
+        }
+
+        function scheduleHealthPoll(delayMs = 5000) {
+            if (healthPollTimer) {
+                clearTimeout(healthPollTimer);
+            }
+            healthPollTimer = setTimeout(() => {
+                checkHealth();
+            }, delayMs);
+        }
+
+        function saveApiBase() {
+            const value = (document.getElementById('apiBaseInput').value || '').trim();
+            if (!value) return;
+            apiBase = value;
+            localStorage.setItem('ttmAskReviewApiBase', apiBase);
+        }
+
+        function updateLlmPolicyText() {
+            const mode = document.getElementById('llmModeSelect').value;
+            const messages = {
+                auto: 'Auto mode will try PAID first, then FREE, then OLLAMA as the last resort.',
+                paid: 'PAID mode will use the PAID Gemini key when available, and fall back to OLLAMA if it fails.',
+                free: 'FREE mode will use the FREE Gemini key when available, and fall back to OLLAMA if it fails.',
+                api1: 'PAID mode will use the PAID Gemini key when available, and fall back to OLLAMA if it fails.',
+                api2: 'FREE mode will use the FREE Gemini key when available, and fall back to OLLAMA if it fails.',
+                local: 'Local mode skips Gemini entirely and uses local Ollama only.'
+            };
+            document.getElementById('llmPolicyText').textContent = messages[mode] || messages.auto;
+        }
+
+        function initializeLlmSettings() {
+            document.getElementById('llmModeSelect').value = localStorage.getItem('ttmAskReviewLlmMode') || 'auto';
+            document.getElementById('apiKey1Input').value = localStorage.getItem('ttmAskApiKey1') || '';
+            document.getElementById('apiKey2Input').value = localStorage.getItem('ttmAskApiKey2') || '';
+
+            document.getElementById('llmModeSelect').addEventListener('change', (event) => {
+                localStorage.setItem('ttmAskReviewLlmMode', event.target.value || 'auto');
+                updateLlmPolicyText();
+            });
+            document.getElementById('apiKey1Input').addEventListener('change', (event) => {
+                localStorage.setItem('ttmAskApiKey1', event.target.value || '');
+            });
+            document.getElementById('apiKey2Input').addEventListener('change', (event) => {
+                localStorage.setItem('ttmAskApiKey2', event.target.value || '');
+            });
+
+            updateLlmPolicyText();
+        }
+
+        function getLlmRequestConfig() {
+            const llmChoice = document.getElementById('llmModeSelect').value || 'auto';
+            const apiKey1 = (document.getElementById('apiKey1Input').value || '').trim();
+            const apiKey2 = (document.getElementById('apiKey2Input').value || '').trim();
+            const config = {
+                llm_choice: llmChoice,
+                api_key_1: apiKey1,
+                api_key_2: apiKey2,
+            };
+            if (llmChoice === 'api1' || llmChoice === 'paid') config.api_key = apiKey1;
+            if (llmChoice === 'api2' || llmChoice === 'free') config.api_key = apiKey2;
+            return config;
+        }
+
+        async function checkLauncherStatus() {
+            try {
+                const response = await fetch(`${launcherBase}/status`, { cache: 'no-store' });
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.error || 'Launcher status failed.');
+                if (data.launcher) {
+                    const parts = [];
+                    parts.push(data.backend ? 'backend seen' : 'backend stopped');
+                    parts.push(data.ollama ? 'ollama seen' : 'ollama stopped');
+                    setLauncherStatus(parts.join(' • '), data.backend ? 'good' : 'warn');
+                    return true;
+                }
+                setLauncherStatus('Launcher unavailable', 'warn');
+                return false;
+            } catch (_) {
+                setLauncherStatus('Launcher offline on :5001. Start TTM Ask.vbs once if needed.', 'warn');
+                return false;
+            }
+        }
+
+        async function startBackend() {
+            setLauncherStatus('Starting local services...', 'warn');
+            try {
+                const response = await fetch(`${launcherBase}/start`, { method: 'POST' });
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.error || 'Start request failed.');
+                const started = Array.isArray(data.started) ? data.started : [];
+                setLauncherStatus(started.length ? `Launcher started: ${started.join(', ')}` : 'Launcher responded with no changes', 'good');
+                setBackendStatus('Waiting for backend...', 'warn');
+                for (let attempt = 0; attempt < 12; attempt += 1) {
+                    const healthy = await checkHealth();
+                    await checkLauncherStatus();
+                    if (healthy) return;
+                    await new Promise((resolve) => setTimeout(resolve, 1500));
+                }
+                setBackendStatus('Backend start requested but still offline', 'bad');
+            } catch (error) {
+                setLauncherStatus('Launcher request failed. Start TTM Ask.vbs once if needed.', 'bad');
+                setBackendStatus(error.message || 'Unable to start backend.', 'bad');
+            }
+        }
+
+        async function checkHealth() {
+            try {
+                const response = await fetch(`${getApiBase()}/health`, { cache: 'no-store' });
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.error || 'Health check failed.');
+                const startup = data.startup || {};
+                const isReady = Boolean(startup.ready);
+                const phase = String(startup.phase || 'starting');
+                const totalPdfs = Number(startup.total_pdfs || data.drive_sync?.indexed_pdfs || 0);
+                const processedPdfs = Number(startup.processed_pdfs || 0);
+                const remainingPdfs = Number(startup.remaining_pdfs ?? Math.max(totalPdfs - processedPdfs, 0));
+                const currentPdf = startup.current_pdf || '';
+                const totalBatches = Number(startup.total_batches || 0);
+                const processedBatches = Number(startup.processed_batches || 0);
+                if (isReady) {
+                    setBackendStatus('Backend connected', 'good');
+                    setIndexStatus(`${totalPdfs} indexed PDFs ready • 0 remaining`, 'good');
+                    if (healthPollTimer) {
+                        clearTimeout(healthPollTimer);
+                        healthPollTimer = null;
+                    }
+                } else {
+                    setBackendStatus(startup.message || 'Backend warming up', 'warn');
+                    if (phase === 'embedding') {
+                        const batchSuffix = totalBatches ? ` • vector batches ${processedBatches} of ${totalBatches}` : '';
+                        setIndexStatus(`PDFs processed ${processedPdfs} of ${totalPdfs} • building vector index${batchSuffix}`, 'warn');
+                    } else {
+                        const currentSuffix = currentPdf ? ` • latest: ${currentPdf}` : '';
+                        setIndexStatus(`PDFs processed ${processedPdfs} of ${totalPdfs} • ${remainingPdfs} remaining${currentSuffix}`, 'warn');
+                    }
+                    scheduleHealthPoll(5000);
+                }
+                return isReady;
+            } catch (error) {
+                setBackendStatus('Backend offline', 'bad');
+                setIndexStatus('Reference index unavailable', 'warn');
+                if (healthPollTimer) {
+                    clearTimeout(healthPollTimer);
+                    healthPollTimer = null;
+                }
+                return false;
+            }
+        }
+
+        async function reloadIndex() {
+            setIndexStatus('Refreshing reference index...', 'warn');
+            try {
+                const response = await fetch(`${getApiBase()}/reload-index`, { method: 'POST' });
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.error || 'Index refresh failed.');
+                setIndexStatus(`${data.pdf_count || 0} PDFs ready`, 'good');
+            } catch (error) {
+                setIndexStatus(error.message || 'Index refresh failed.', 'bad');
+                throw error;
+            }
+        }
+
+        function splitFocus(text) {
+            return String(text || '')
+                .split(/\n|,/)
+                .map((item) => item.trim())
+                .filter(Boolean);
+        }
+
+        function renderList(items) {
+            if (!Array.isArray(items) || !items.length) {
+                return '<p>No items.</p>';
+            }
+            return `<ul class="report-list">${items.map((item) => `<li>${escapeHtml(String(item))}</li>`).join('')}</ul>`;
+        }
+
+        function renderReport(report) {
+            const findings = Array.isArray(report.findings) ? report.findings : [];
+            const sources = Array.isArray(report.source_documents) ? report.source_documents : [];
+            const reviewScope = Array.isArray(report.review_scope) ? report.review_scope : [];
+            const imageScan = report.image_scan || {};
+            const workflow = report.review_workflow || {};
+            const standardsSummary = workflow.agents?.standards_review?.summary || '';
+            const commonSummary = workflow.agents?.common_review?.summary || '';
+            const reportHtml = `
+                <div class="report-section">
+                    <h3>Overview</h3>
+                    <p>${escapeHtml(report.overview || 'No overview returned.')}</p>
+                </div>
+                <div class="report-section">
+                    <h3>Review scope</h3>
+                    <p>${reviewScope.length ? escapeHtml(reviewScope.join(', ')) : 'No project document scope returned.'}</p>
+                    <p>Image scan: ${imageScan.enabled ? 'enabled' : 'disabled'} • mode: ${escapeHtml(imageScan.mode || 'auto')} • targets: ${escapeHtml((imageScan.targets || []).join(', ') || 'none')} • max images/PDF: ${escapeHtml(String(imageScan.max_images_per_pdf || 0))}</p>
+                </div>
+                <div class="report-section">
+                    <h3>Recommendations</h3>
+                    ${renderList(report.recommendations || [])}
+                </div>
+                <div class="report-section">
+                    <h3>Assumptions and gaps</h3>
+                    ${renderList(report.assumptions || [])}
+                </div>
+                <div class="report-section">
+                    <h3>Inference path</h3>
+                    <p>Mode used: ${escapeHtml(report.llm_selection?.mode || 'unknown')}</p>
+                    ${report.llm_selection?.fallback_used ? `<p>Fallback used: yes${report.llm_selection?.fallback_reason ? ` • ${escapeHtml(report.llm_selection.fallback_reason)}` : ''}</p>` : '<p>Fallback used: no</p>'}
+                </div>
+                <div class="report-section">
+                    <h3>Review workflow</h3>
+                    <p>Workflow: ${escapeHtml(workflow.mode || 'single-pass-review')}</p>
+                    <p>Execution: ${escapeHtml(workflow.execution || 'unknown')}</p>
+                    ${standardsSummary ? `<div class="subhead">Agent 1: Standards review</div><p>${escapeHtml(standardsSummary)}</p>` : ''}
+                    ${commonSummary ? `<div class="subhead">Agent 2: Common issues review</div><p>${escapeHtml(commonSummary)}</p>` : ''}
+                </div>
+                <div class="report-section">
+                    <h3>Findings</h3>
+                    ${findings.length ? findings.map((finding) => {
+                        const severity = String(finding.severity || 'medium').toLowerCase();
+                        const severityClass = ['critical', 'high', 'medium', 'low'].includes(severity) ? severity : 'medium';
+                        return `
+                            <div class="finding-card" style="margin-top: 10px;">
+                                <div class="finding-head">
+                                    <h4 class="finding-title">${escapeHtml(finding.title || 'Untitled finding')}</h4>
+                                    <span class="severity severity-${severityClass}">${escapeHtml(severityClass)}</span>
+                                </div>
+                                <p>${escapeHtml(finding.issue || 'No issue text provided.')}</p>
+                                <div class="finding-meta">
+                                    ${finding.category ? `<span class="mini-pill">Category: ${escapeHtml(String(finding.category))}</span>` : ''}
+                                    ${finding.confidence ? `<span class="mini-pill">Confidence: ${escapeHtml(String(finding.confidence))}</span>` : ''}
+                                </div>
+                                ${Array.isArray(finding.affected_documents) && finding.affected_documents.length ? `<div class="subhead">Affected documents</div>${renderList(finding.affected_documents)}` : ''}
+                                ${Array.isArray(finding.evidence) && finding.evidence.length ? `<div class="subhead">Evidence</div>${renderList(finding.evidence)}` : ''}
+                                ${Array.isArray(finding.guideline_basis) && finding.guideline_basis.length ? `<div class="subhead">Guideline basis</div>${renderList(finding.guideline_basis)}` : ''}
+                                ${finding.recommendation ? `<div class="subhead">Recommendation</div><p>${escapeHtml(String(finding.recommendation))}</p>` : ''}
+                            </div>
+                        `;
+                    }).join('') : '<p>No findings returned.</p>'}
+                </div>
+                <div class="report-section">
+                    <h3>Project documents used</h3>
+                    ${sources.length ? `<div class="sources-grid">${sources.map((source) => `
+                        <div class="source-item">
+                            <div>
+                                <strong>${escapeHtml(source.type || 'Document')}</strong>
+                                <span>${escapeHtml(source.path || source.uploaded_name || 'Uploaded document')}</span>
+                                <span>Extracted chunks: ${escapeHtml(String(source.chunks_extracted || 0))}</span>
+                            </div>
+                            ${source.path ? `<button class="btn btn-ghost open-source-btn" type="button" data-path="${escapeHtml(source.path)}" data-title="${escapeHtml(source.type || 'Document')}">Open source</button>` : ''}
+                        </div>
+                    `).join('')}</div>` : '<p>No project documents recorded.</p>'}
+                </div>
+                <div class="report-section">
+                    <h3>Reference sources used</h3>
+                    ${renderList(report.reference_sources || [])}
+                </div>
+                <div class="report-section">
+                    <h3>Markdown export</h3>
+                    <pre>${escapeHtml(report.markdown_report || '')}</pre>
+                </div>
+            `;
+            document.getElementById('reportContent').innerHTML = reportHtml;
+
+            document.querySelectorAll('.open-source-btn').forEach((button) => {
+                button.addEventListener('click', () => {
+                    const path = button.getAttribute('data-path') || '';
+                    if (!path) return;
+                    window.open(`${getApiBase()}/documents/open?path=${encodeURIComponent(path)}`, '_blank', 'noopener');
+                });
+            });
+        }
+
+        async function runAutomatedReview() {
+            const tgsFile = document.getElementById('reviewTgsFile').files[0] || null;
+            const tmpFile = document.getElementById('reviewTmpFile').files[0] || null;
+            const ctmpFile = document.getElementById('reviewCtmpFile').files[0] || null;
+            const additionalFocus = splitFocus(document.getElementById('reviewAdditionalFocus').value);
+            const refreshFirst = document.getElementById('refreshIndexBeforeRun').checked;
+            const includeImageScan = document.getElementById('enableImageScan').checked;
+            const imageScanMode = (document.getElementById('imageScanModeSelect').value || 'auto').trim().toLowerCase();
+            const maxImagesPerPdf = Math.max(1, Math.min(12, Number(document.getElementById('maxImagesPerPdfInput').value || 4) || 4));
+            const llmConfig = getLlmRequestConfig();
+
+            const hasAnyProjectDocument = !!(tgsFile || tmpFile || ctmpFile);
+            if (!hasAnyProjectDocument) {
+                setReportStatus('Upload at least one review document: TGS, TMP, or CTMP.', 'bad');
+                return;
+            }
+
+            setReportStatus('Running automated review...', 'running');
+            document.getElementById('reportContent').innerHTML = '<div class="report-placeholder">Refreshing references if requested, extracting project evidence, retrieving guidance, and building the structured review report.</div>';
+            startReviewProgressPolling();
+
+            try {
+                if (refreshFirst) {
+                    await reloadIndex();
+                }
+
+                const formData = new FormData();
+                if (tgsFile) formData.append('tgs_file', tgsFile);
+                if (tmpFile) formData.append('tmp_file', tmpFile);
+                if (ctmpFile) formData.append('ctmp_file', ctmpFile);
+                formData.append('additional_focus', JSON.stringify(additionalFocus));
+                formData.append('llm_choice', llmConfig.llm_choice || 'auto');
+                formData.append('api_key_1', llmConfig.api_key_1 || '');
+                formData.append('api_key_2', llmConfig.api_key_2 || '');
+                formData.append('include_image_scan', includeImageScan ? '1' : '0');
+                formData.append('image_scan_mode', imageScanMode);
+                formData.append('max_images_per_pdf', String(maxImagesPerPdf));
+                formData.append('vision_timeout_seconds', '90');
+                if (llmConfig.api_key) formData.append('api_key', llmConfig.api_key);
+
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), REVIEW_TIMEOUT_MS);
+                let response;
+                try {
+                    response = await fetch(`${getApiBase()}/review-documents`, { method: 'POST', body: formData, signal: controller.signal });
+                } finally {
+                    clearTimeout(timeoutId);
+                }
+
+                const data = await response.json();
+                if (!response.ok) {
+                    throw new Error(data.error || 'Review failed.');
+                }
+
+                renderReport(data);
+                const recommendationCount = Array.isArray(data.recommendations) ? data.recommendations.length : 0;
+                setReportStatus(`Automated review completed. ${recommendationCount} recommendation${recommendationCount === 1 ? '' : 's'} returned.`, 'good');
+            } catch (error) {
+                const message = error?.name === 'AbortError'
+                    ? 'Review timed out on the client after 12 minutes. Try TMP-only image scan or lower max images per PDF.'
+                    : (error.message || 'Review failed.');
+                setReportStatus(message, 'bad');
+                document.getElementById('reportContent').innerHTML = '<div class="report-placeholder">The review failed before a report could be generated.</div>';
+            } finally {
+                stopReviewProgressPolling();
+            }
+        }
+
+        async function initialize() {
+            if (shouldUseCurrentOrigin()) {
+                apiBase = window.location.origin;
+                localStorage.setItem('ttmAskReviewApiBase', apiBase);
+            }
+
+            const redirected = await redirectToLiveAppIfNeeded();
+            if (redirected) {
+                return;
+            }
+
+            document.getElementById('apiBaseInput').value = getApiBase();
+            initializeLlmSettings();
+
+            document.getElementById('saveApiBaseBtn').addEventListener('click', async () => {
+                saveApiBase();
+                await checkHealth();
+                await checkLauncherStatus();
+            });
+            document.getElementById('retryConnectionBtn').addEventListener('click', async () => {
+                await checkHealth();
+                await checkLauncherStatus();
+            });
+            document.getElementById('startBackendBtn').addEventListener('click', startBackend);
+            document.getElementById('reloadIndexBtn').addEventListener('click', async () => {
+                try {
+                    await reloadIndex();
+                } catch (_) {}
+            });
+            document.getElementById('runReviewBtn').addEventListener('click', runAutomatedReview);
+            document.getElementById('openAssistantBtn').addEventListener('click', () => {
+                window.location.href = `${getApiBase()}/assistant`;
+            });
+
+            await checkHealth();
+            await checkLauncherStatus();
+        }
+
+        window.addEventListener('load', initialize);
+    </script>
+</body>
+</html>

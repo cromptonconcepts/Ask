@@ -1,0 +1,2094 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AU Traffic Management Knowledge Base</title>
+    <style>
+        :root {
+            --primary-color: #2f6ea7;
+            --sidebar-bg: #f6f9fd;
+            --text-main: #22313f;
+            --border-color: #dbe5ef;
+            --surface: #ffffff;
+            --muted: #66788a;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            display: flex;
+            height: 100vh;
+            color: var(--text-main);
+            background: radial-gradient(1200px 420px at 15% -10%, #edf4ff 0%, transparent 60%), #f2f6fb;
+        }
+        /* Sidebar for Documents */
+        .sidebar {
+            width: clamp(340px, 30vw, 460px);
+            min-width: 340px;
+            background-color: var(--sidebar-bg);
+            border-right: 1px solid var(--border-color);
+            padding: 20px;
+            overflow-y: auto;
+            box-shadow: inset -1px 0 0 #fff;
+            transition: width 0.28s ease, min-width 0.28s ease, padding 0.28s ease, opacity 0.24s ease;
+            opacity: 1;
+        }
+        body.sidebar-collapsed .sidebar {
+            width: 0;
+            min-width: 0;
+            padding: 0;
+            border-right: 0;
+            opacity: 0;
+            overflow: hidden;
+        }
+        .sidebar h2 {
+            font-size: 1rem;
+            color: var(--primary-color);
+            margin-top: 0;
+            margin-bottom: 14px;
+            letter-spacing: 0.2px;
+        }
+        .doc-list {
+            list-style: none;
+            padding: 0;
+        }
+        .doc-group-title {
+            margin: 14px 0 8px 0;
+            padding: 6px 10px;
+            border-radius: 6px;
+            background: #dfe8f7;
+            color: #214a85;
+            font-size: 0.82rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+        .doc-list li {
+            margin-bottom: 10px;
+            padding: 12px;
+            background: var(--surface);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            box-shadow: 0 1px 2px rgba(18, 38, 63, 0.05);
+        }
+        .doc-list a {
+            text-decoration: none;
+            color: var(--primary-color);
+            font-weight: bold;
+            display: block;
+        }
+        .doc-list span {
+            font-size: 0.85rem;
+            color: #666;
+            display: block;
+            margin-top: 4px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .doc-item-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
+        .doc-title {
+            color: var(--primary-color);
+            font-weight: bold;
+            font-size: 1rem;
+            line-height: 1.3;
+            word-break: break-word;
+        }
+        .open-btn {
+            padding: 6px 10px;
+            font-size: 0.8rem;
+            text-decoration: none;
+            background: #f1f6ff;
+            border: 1px solid #b9ccee;
+            color: #003f8a;
+            border-radius: 4px;
+            white-space: nowrap;
+        }
+        .open-btn:hover {
+            background: #e5efff;
+        }
+        .viewer-modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.55);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            z-index: 1000;
+        }
+        .viewer-modal.open {
+            display: flex;
+        }
+        .viewer-dialog {
+            width: min(1120px, 96vw);
+            height: min(88vh, 920px);
+            background: #fff;
+            border-radius: 14px;
+            box-shadow: 0 30px 80px rgba(15, 23, 42, 0.28);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        .viewer-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 14px 18px;
+            border-bottom: 1px solid var(--border-color);
+            background: #f8fbff;
+        }
+        .viewer-title {
+            font-size: 0.98rem;
+            font-weight: 700;
+            color: #173b72;
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .viewer-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .viewer-link {
+            color: #0b4ea2;
+            text-decoration: none;
+            font-size: 0.86rem;
+            font-weight: 600;
+        }
+        .viewer-close {
+            padding: 7px 12px;
+            font-size: 0.86rem;
+            border-radius: 8px;
+            background: #163f7a;
+        }
+        .viewer-frame {
+            width: 100%;
+            height: 100%;
+            border: 0;
+            background: #dfe7f3;
+        }
+        /* Main Chat/Search Area */
+        .main-content {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            background-color: transparent;
+            position: relative;
+        }
+        .sidebar-toggle-btn {
+            position: absolute;
+            left: 12px;
+            top: 14px;
+            z-index: 20;
+            padding: 7px 12px;
+            border-radius: 999px;
+            border: 1px solid #c8d8eb;
+            background: #ffffff;
+            color: #1f4d80;
+            font-size: 0.8rem;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 6px 18px rgba(33, 71, 122, 0.12);
+        }
+        .sidebar-toggle-btn:hover {
+            background: #f4f8ff;
+        }
+        .header {
+            padding: 20px 22px 18px 64px;
+            border-bottom: 1px solid var(--border-color);
+            background-color: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(6px);
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 1.4rem;
+            letter-spacing: 0.2px;
+        }
+        .backend-status-row {
+            margin-top: 8px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .header-summary {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 12px;
+        }
+        .summary-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 7px 11px;
+            border-radius: 999px;
+            background: #f8fbff;
+            border: 1px solid #d7e4f2;
+            box-shadow: 0 4px 14px rgba(16, 39, 72, 0.05);
+            color: #255384;
+            font-size: 0.78rem;
+            font-weight: 700;
+        }
+        .backend-status {
+            font-size: 0.9rem;
+            color: #495057;
+        }
+        .backend-status.offline {
+            color: #b02a37;
+            font-weight: 600;
+        }
+        .startup-panel {
+            margin-top: 14px;
+            padding: 16px;
+            border: 1px solid #d5e3f2;
+            border-radius: 16px;
+            background: linear-gradient(180deg, #ffffff 0%, #f7fbff 100%);
+            box-shadow: 0 10px 28px rgba(17, 45, 78, 0.06);
+            display: none;
+        }
+        .startup-panel.open {
+            display: block;
+        }
+        .startup-panel-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .startup-panel-title {
+            margin: 0;
+            font-size: 0.96rem;
+            font-weight: 800;
+            color: #173b72;
+        }
+        .startup-panel-subtitle {
+            margin: 6px 0 0 0;
+            font-size: 0.86rem;
+            color: #53677f;
+            line-height: 1.45;
+        }
+        .startup-status-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 7px 11px;
+            border-radius: 999px;
+            background: #fff3f4;
+            border: 1px solid #f0c6cb;
+            color: #a22835;
+            font-size: 0.76rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.35px;
+        }
+        .startup-panel-grid {
+            margin-top: 14px;
+            display: grid;
+            grid-template-columns: minmax(260px, 1.25fr) minmax(240px, 1fr);
+            gap: 14px;
+        }
+        .startup-card {
+            padding: 14px;
+            border-radius: 12px;
+            border: 1px solid #d8e4f2;
+            background: #fbfdff;
+        }
+        .startup-card h3 {
+            margin: 0 0 10px 0;
+            font-size: 0.82rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.32px;
+            color: #355f93;
+        }
+        .startup-steps {
+            margin: 0;
+            padding-left: 20px;
+            color: #31465d;
+            font-size: 0.86rem;
+            line-height: 1.55;
+        }
+        .startup-steps li + li {
+            margin-top: 6px;
+        }
+        .startup-actions {
+            margin-top: 12px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .secondary-btn,
+        .link-btn {
+            padding: 10px 14px;
+            border-radius: 12px;
+            border: 1px solid #c8d8ef;
+            background: #f8fbff;
+            color: #163f7a;
+            cursor: pointer;
+            font-size: 0.84rem;
+            font-weight: 700;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .secondary-btn:hover,
+        .link-btn:hover {
+            background: #eaf2ff;
+        }
+        .startup-meta-list {
+            display: grid;
+            gap: 10px;
+        }
+        .startup-meta-item {
+            padding: 10px 12px;
+            border-radius: 10px;
+            border: 1px solid #d7e4f2;
+            background: #eff6ff;
+        }
+        .startup-meta-label {
+            display: block;
+            font-size: 0.72rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.28px;
+            color: #5f7690;
+            margin-bottom: 4px;
+        }
+        .startup-meta-value {
+            display: block;
+            font-size: 0.86rem;
+            font-weight: 700;
+            color: #173b72;
+            line-height: 1.4;
+            word-break: break-word;
+        }
+        .startup-api-row {
+            margin-top: 12px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        .startup-api-row input[type="text"] {
+            flex: 1 1 260px;
+            min-width: 220px;
+            padding: 10px 12px;
+            font-size: 0.9rem;
+        }
+        .startup-hint {
+            margin-top: 10px;
+            font-size: 0.8rem;
+            color: #5a6b80;
+            line-height: 1.45;
+        }
+        #startServicesBtn {
+            display: none;
+            padding: 5px 14px;
+            font-size: 0.82rem;
+            font-weight: 600;
+            background: #198754;
+            color: #fff;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        #startServicesBtn:hover { background: #146c43; }
+        #startServicesBtn:disabled { background: #6c757d; cursor: default; }
+        .chat-container {
+            flex: 1;
+            padding: 20px 22px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            background-color: transparent;
+        }
+        .message {
+            max-width: 80%;
+            padding: 14px 15px;
+            border-radius: 12px;
+            line-height: 1.5;
+            white-space: normal;
+            box-shadow: 0 8px 20px rgba(26, 58, 94, 0.06);
+        }
+        .user-message {
+            align-self: flex-end;
+            background: linear-gradient(180deg, #4f89bd 0%, #3c74ab 100%);
+            color: #f8fbff;
+            border-bottom-right-radius: 0;
+        }
+        .system-message {
+            align-self: flex-start;
+            background: linear-gradient(180deg, #ffffff 0%, #fbfdff 100%);
+            border: 1px solid #d8e4f0;
+            border-bottom-left-radius: 0;
+        }
+        .source-tag {
+            display: inline-block;
+            background: #e9ecef;
+            color: #495057;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            margin-top: 10px;
+            font-weight: bold;
+        }
+        .source-links {
+            margin-top: 10px;
+            font-size: 0.85rem;
+            color: #495057;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+        .source-family-group {
+            margin-top: 8px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            align-items: center;
+        }
+        .source-family-title {
+            display: inline-block;
+            background: #dfe8f7;
+            color: #214a85;
+            padding: 4px 10px;
+            border-radius: 999px;
+            font-size: 0.78rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.2px;
+        }
+        .source-link {
+            display: inline-block;
+            background: #e9ecef;
+            color: #0b4ea2;
+            text-decoration: none;
+            padding: 3px 8px;
+            border-radius: 12px;
+            border: 1px solid #d0d7de;
+            font-weight: 600;
+        }
+        .source-link:hover {
+            background: #dde6f3;
+        }
+        .answer-table {
+            margin: 10px 0;
+            border-collapse: collapse;
+            width: 100%;
+            background: #fff;
+            border: 1px solid #d0d7de;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+        .answer-table th,
+        .answer-table td {
+            border: 1px solid #d0d7de;
+            padding: 6px 8px;
+            text-align: left;
+            vertical-align: top;
+            font-size: 0.9rem;
+        }
+        .answer-table th {
+            background: #f4f7fb;
+            font-weight: 700;
+        }
+        /* Source excerpts */
+        .excerpts-section {
+            margin-top: 12px;
+        }
+        .excerpts-toggle {
+            background: none;
+            border: 1px solid #c0cfe0;
+            border-radius: 12px;
+            padding: 3px 12px;
+            font-size: 0.8rem;
+            color: #0b4ea2;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .excerpts-toggle:hover { background: #dde6f3; }
+        .excerpts-toggle .toggle-arrow { font-size: 0.7rem; transition: transform 0.2s; }
+        .excerpts-toggle.open .toggle-arrow { transform: rotate(90deg); }
+        .excerpts-list {
+            display: none;
+            margin-top: 10px;
+            display: none;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .excerpt-family-block {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .excerpt-family-title {
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: #214a85;
+            text-transform: uppercase;
+            letter-spacing: 0.25px;
+            margin-top: 4px;
+        }
+        .excerpt-item {
+            background: #f4f7fb;
+            border-left: 3px solid #0b4ea2;
+            border-radius: 0 6px 6px 0;
+            padding: 8px 12px;
+            font-size: 0.82rem;
+            color: #333;
+            line-height: 1.5;
+        }
+        .excerpt-meta {
+            font-size: 0.75rem;
+            color: #6c757d;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        .excerpt-refs {
+            margin: 4px 0 8px 0;
+            font-size: 0.76rem;
+            color: #355f93;
+            font-weight: 600;
+        }
+        .excerpt-image-toggle {
+            margin-top: 8px;
+            padding: 5px 10px;
+            border: 1px solid #bad0ec;
+            background: #eff6ff;
+            color: #18467f;
+            border-radius: 999px;
+            font-size: 0.76rem;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .excerpt-image-toggle:hover {
+            background: #e1eeff;
+        }
+        .excerpt-image {
+            display: none;
+            margin-top: 10px;
+            width: 100%;
+            max-width: 520px;
+            border: 1px solid #cfdae8;
+            border-radius: 10px;
+            background: #fff;
+        }
+        /* Input Area */
+        .input-area {
+            padding: 16px 22px 18px 22px;
+            background: rgba(255, 255, 255, 0.96);
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            align-items: stretch;
+        }
+        .prompt-tools {
+            display: flex;
+            align-items: center;
+            position: relative;
+            gap: 10px;
+            width: 100%;
+        }
+        #promptTools {
+            flex: 0 0 auto;
+        }
+        .question-inline {
+            flex: 1 1 auto;
+            min-width: 0;
+        }
+        .template-menu {
+            position: relative;
+            display: inline-flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        .template-btn {
+            padding: 6px 10px;
+            border: 1px solid #c9d8ef;
+            background: #f6faff;
+            color: #1a4f96;
+            border-radius: 999px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .template-btn:hover {
+            background: #e7f1ff;
+        }
+        .template-panel {
+            position: absolute;
+            top: calc(100% + 8px);
+            left: 0;
+            width: min(720px, calc(100vw - 80px));
+            display: none;
+            flex-direction: column;
+            gap: 8px;
+            padding: 12px;
+            border: 1px solid #c9d8ef;
+            border-radius: 14px;
+            background: #ffffff;
+            box-shadow: 0 18px 42px rgba(15, 23, 42, 0.14);
+            z-index: 20;
+        }
+        .template-panel.open {
+            display: flex;
+        }
+        .template-option {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #d8e4f5;
+            border-radius: 12px;
+            background: #f8fbff;
+            color: #24456f;
+            cursor: pointer;
+            text-align: left;
+        }
+        .template-option:hover {
+            background: #edf5ff;
+        }
+        .template-option-title {
+            display: block;
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: #163f7a;
+            margin-bottom: 4px;
+        }
+        .template-option-text {
+            display: block;
+            font-size: 0.82rem;
+            font-weight: 500;
+            color: #4d5f76;
+            line-height: 1.35;
+        }
+        .input-row {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            width: 100%;
+            flex-wrap: wrap;
+        }
+        .mode-toggle {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 7px 12px;
+            border: 1px solid #d6e1f0;
+            border-radius: 999px;
+            background: linear-gradient(180deg, #ffffff 0%, #f7faff 100%);
+            color: #163f7a;
+            font-size: 0.82rem;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+        .mode-toggle input {
+            accent-color: #0b4ea2;
+        }
+        .strict-toggle {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 7px 11px;
+            border: 1px solid #d6e1f0;
+            border-radius: 999px;
+            background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+            color: #2f3a48;
+            font-size: 0.82rem;
+            white-space: nowrap;
+        }
+        .analysis-card {
+            margin-top: 10px;
+            border: 1px solid #d7e3f3;
+            background: #f8fbff;
+            border-radius: 8px;
+            padding: 10px;
+            font-size: 0.82rem;
+            color: #2a3b52;
+        }
+        .analysis-title {
+            font-weight: 700;
+            color: #194980;
+            margin-bottom: 6px;
+        }
+        .analysis-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+        .analysis-list {
+            margin: 0;
+            padding-left: 18px;
+        }
+        .analysis-list li {
+            margin: 2px 0;
+        }
+        .analysis-col h4 {
+            margin: 0 0 4px 0;
+            font-size: 0.78rem;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            color: #355f93;
+        }
+        .followup-wrap {
+            margin-top: 8px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+        .followup-btn {
+            border: 1px solid #bad0ec;
+            background: #eff6ff;
+            color: #18467f;
+            border-radius: 999px;
+            padding: 5px 10px;
+            font-size: 0.78rem;
+            font-weight: 600;
+            cursor: pointer;
+            text-align: left;
+        }
+        .followup-btn:hover {
+            background: #e1eeff;
+        }
+        .session-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 7px 12px;
+            border-radius: 999px;
+            background: #f2f8ff;
+            border: 1px solid #c7daf3;
+            color: #18467f;
+            font-size: 0.78rem;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+        .ghost-btn {
+            padding: 10px 14px;
+            background: #f8fbff;
+            color: #163f7a;
+            border: 1px solid #c8d8ef;
+            border-radius: 999px;
+            cursor: pointer;
+            font-size: 0.86rem;
+            font-weight: 700;
+        }
+        .ghost-btn:hover {
+            background: #eaf2ff;
+        }
+        .response-meta {
+            margin-top: 12px;
+            padding: 12px;
+            border: 1px solid #d7e3f3;
+            background: linear-gradient(180deg, #ffffff 0%, #f7fbff 100%);
+            border-radius: 12px;
+        }
+        .response-meta-title {
+            font-size: 0.78rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            color: #355f93;
+            margin-bottom: 8px;
+        }
+        .response-meta-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 10px;
+        }
+        .response-meta-card {
+            padding: 10px 12px;
+            border-radius: 10px;
+            background: #eff6ff;
+            border: 1px solid #cfe0f5;
+        }
+        .response-meta-label {
+            display: block;
+            font-size: 0.72rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            color: #59718e;
+            margin-bottom: 4px;
+        }
+        .response-meta-value {
+            display: block;
+            font-size: 0.88rem;
+            font-weight: 700;
+            color: #163f7a;
+            line-height: 1.4;
+            word-break: break-word;
+        }
+        .query-pills {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+        .query-pill {
+            display: inline-flex;
+            align-items: center;
+            padding: 5px 9px;
+            border-radius: 999px;
+            background: #ffffff;
+            border: 1px solid #c7daf3;
+            color: #1b497f;
+            font-size: 0.76rem;
+            font-weight: 700;
+        }
+        input[type="text"] {
+            flex: 1 1 auto;
+            min-width: 0;
+            padding: 12px 14px;
+            border: 1px solid #d7e3f1;
+            border-radius: 12px;
+            font-size: 1rem;
+            outline: none;
+            background: #fcfeff;
+            box-shadow: inset 0 1px 2px rgba(26, 58, 94, 0.04);
+        }
+        input[type="text"]:focus {
+            border-color: #89abd3;
+            box-shadow: 0 0 0 3px rgba(59, 111, 167, 0.14);
+        }
+        #documentSelector {
+            flex: 0 0 220px;
+            min-width: 180px;
+            max-width: 240px;
+            padding: 11px 10px;
+            border: 1px solid #d7e3f1;
+            border-radius: 12px;
+            font-size: 0.95rem;
+            background: #fcfeff;
+            color: #2f3a48;
+            outline: none;
+        }
+        button {
+            padding: 12px 24px;
+            background: linear-gradient(180deg, #4f89bd 0%, #3c74ab 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: bold;
+            transition: background 0.2s, transform 0.15s ease;
+        }
+        button:hover {
+            background: linear-gradient(180deg, #588fc1 0%, #447aad 100%);
+            transform: translateY(-1px);
+        }
+        @media (max-width: 900px) {
+            .sidebar {
+                width: 260px;
+                min-width: 260px;
+                padding: 14px;
+            }
+            .sidebar-toggle-btn {
+                left: 10px;
+                top: 10px;
+            }
+            .header {
+                padding-left: 56px;
+            }
+            .prompt-tools { flex-wrap: wrap; }
+            #promptTools { width: 100%; }
+            .question-inline { width: 100%; }
+            .input-row { flex-wrap: wrap; }
+            #documentSelector { min-width: 100%; width: 100%; }
+            input[type="text"] { width: 100%; }
+            #askButton { width: 100%; }
+            .strict-toggle, .mode-toggle, .session-chip { width: 100%; justify-content: center; }
+            .analysis-grid { grid-template-columns: 1fr; }
+            .startup-panel-grid { grid-template-columns: 1fr; }
+            .startup-actions { width: 100%; }
+            .secondary-btn, .link-btn { width: 100%; }
+            .startup-api-row { flex-direction: column; align-items: stretch; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <h2>Reference Documents</h2>
+        <ul class="doc-list" id="documentList">
+            </ul>
+    </div>
+
+    <div class="main-content">
+        <button id="sidebarToggleBtn" class="sidebar-toggle-btn" type="button" onclick="toggleSidebar()">Show References</button>
+        <div class="header">
+            <h1>Traffic Management Q&A Assistant</h1>
+            <div class="backend-status-row">
+                <div id="backendStatus" class="backend-status">Checking backend connection...</div>
+                <button id="startServicesBtn" onclick="startServices()">&#9654; Start Services</button>
+            </div>
+            <div class="header-summary">
+                <div class="summary-chip">Extraction</div>
+                <div class="summary-chip">Retrieval</div>
+                <div class="summary-chip">Memory & Vision</div>
+            </div>
+            <div id="startupPanel" class="startup-panel" aria-live="polite">
+                <div class="startup-panel-header">
+                    <div>
+                        <h2 id="startupPanelTitle" class="startup-panel-title">Local startup required</h2>
+                        <p id="startupPanelSubtitle" class="startup-panel-subtitle">This page depends on a local backend service. When you open the HTML directly, the assistant cannot continue until the backend responds.</p>
+                    </div>
+                    <div id="startupBadge" class="startup-status-badge">Offline</div>
+                </div>
+                <div class="startup-panel-grid">
+                    <div class="startup-card">
+                        <h3>What to do</h3>
+                        <ol class="startup-steps">
+                            <li>Run Start Crompton_AI.vbs, or use Start Services below if the launcher is available.</li>
+                            <li>Wait for the backend to come up.</li>
+                            <li>Open the health check URL to confirm the service is responding.</li>
+                            <li>Click Retry connection and the page will resume automatically.</li>
+                        </ol>
+                        <div class="startup-actions">
+                            <button id="startupStartBtn" class="secondary-btn" type="button">Start Services</button>
+                            <button id="retryConnectionBtn" class="secondary-btn" type="button">Retry connection</button>
+                            <a id="healthCheckLink" class="link-btn" href="#" target="_blank" rel="noopener noreferrer">Open health check</a>
+                        </div>
+                        <div class="startup-api-row">
+                            <input id="apiBaseInput" type="text" spellcheck="false" aria-label="Backend API base URL">
+                            <button id="saveApiBaseBtn" class="secondary-btn" type="button">Save API URL</button>
+                        </div>
+                        <div class="startup-hint" id="startupHint">Default local URL: http://localhost:5000</div>
+                    </div>
+                    <div class="startup-card">
+                        <h3>Diagnostics</h3>
+                        <div class="startup-meta-list">
+                            <div class="startup-meta-item">
+                                <span class="startup-meta-label">Open mode</span>
+                                <span id="startupOpenMode" class="startup-meta-value">file://</span>
+                            </div>
+                            <div class="startup-meta-item">
+                                <span class="startup-meta-label">API base</span>
+                                <span id="startupApiBase" class="startup-meta-value">http://localhost:5000</span>
+                            </div>
+                            <div class="startup-meta-item">
+                                <span class="startup-meta-label">Health endpoint</span>
+                                <span id="startupHealthUrl" class="startup-meta-value">http://localhost:5000/health</span>
+                            </div>
+                            <div class="startup-meta-item">
+                                <span class="startup-meta-label">Last check</span>
+                                <span id="startupLastCheck" class="startup-meta-value">Waiting for first check</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="chat-container" id="chatContainer">
+            <div class="message system-message">
+                Hello! Ask a question and I will answer using the currently indexed Drive documents.
+            </div>
+        </div>
+
+        <div class="input-area">
+            <div class="prompt-tools">
+                <div id="promptTools"></div>
+                <input type="text" id="questionInput" class="question-inline" placeholder="e.g., What are the barrier requirements for a 4m deep trench?" onkeypress="handleKeyPress(event)">
+            </div>
+            <div class="input-row">
+                <select id="documentSelector" title="Select document scope">
+                    <option value="">All Documents (default)</option>
+                </select>
+                <label class="mode-toggle" title="Enable Router → Researcher → Engineer multi-agent mode for harder questions.">
+                    <input type="checkbox" id="agenticModeToggle">
+                    Agentic mode
+                </label>
+                <label class="strict-toggle" title="When enabled, the assistant will avoid final recommendations when key inputs are missing.">
+                    <input type="checkbox" id="strictModeToggle">
+                    Strict mode
+                </label>
+                <div id="sessionChip" class="session-chip">Session: new</div>
+                <button id="newSessionButton" class="ghost-btn" type="button" onclick="startNewConversation()">New conversation</button>
+                <button id="askButton" onclick="askQuestion()">Ask</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="documentViewerModal" class="viewer-modal" aria-hidden="true">
+        <div class="viewer-dialog" role="dialog" aria-modal="true" aria-labelledby="viewerTitle">
+            <div class="viewer-header">
+                <div id="viewerTitle" class="viewer-title">Document viewer</div>
+                <div class="viewer-actions">
+                    <a id="viewerExternalLink" class="viewer-link" href="#" target="_blank" rel="noopener noreferrer">Open in browser</a>
+                    <button id="viewerCloseBtn" class="viewer-close" type="button">Close</button>
+                </div>
+            </div>
+            <iframe id="documentViewerFrame" class="viewer-frame" title="Document viewer"></iframe>
+        </div>
+    </div>
+
+    <script>
+        const IS_FILE_PROTOCOL = window.location.protocol === 'file:';
+        const IS_LOCAL_HOST = ['localhost', '127.0.0.1'].includes(window.location.hostname);
+        const IS_GITHUB_PAGES = window.location.hostname.endsWith('github.io');
+        const ENABLE_LOCAL_LAUNCHER = IS_FILE_PROTOCOL || IS_LOCAL_HOST;
+        let apiBase = (IS_FILE_PROTOCOL || IS_GITHUB_PAGES)
+            ? (localStorage.getItem('ttmAskApiBase') || 'http://localhost:5000')
+            : window.location.origin;
+        const LAUNCHER_BASE = 'http://localhost:5001';
+        const JURISDICTION_ORDER = [
+            'Federal / National',
+            'Queensland',
+            'New South Wales',
+            'Victoria',
+            'Western Australia',
+            'South Australia',
+            'Tasmania',
+            'Australian Capital Territory',
+            'Northern Territory',
+            'Other'
+        ];
+        const QUESTION_TEMPLATES = [
+            {
+                title: 'Excavation delineation',
+                text: 'For [jurisdiction], excavation depth [m], speed [km/h], traffic volume [vpd], clearance to kerb [m]. What delineation is required?'
+            },
+            {
+                title: 'AGTTM vs QGTTM compare',
+                text: 'Compare AGTTM vs QGTTM for Part [x], Table [x.y], for speed [km/h] and volume [vpd].'
+            },
+            {
+                title: 'Trench controls',
+                text: 'What controls are required for a trench [m] deep in a [m]-wide road with [km/h] speed zone?'
+            },
+            {
+                title: 'Barrier assessment',
+                text: 'For a worksite in a [km/h] zone with excavation depth [m] and clearance [m], when are barriers required instead of cones?'
+            },
+            {
+                title: 'Lane closure setup',
+                text: 'For a [jurisdiction] road with speed [km/h] and traffic volume [vpd], what signs, tapers, and delineation are required for a lane closure?'
+            },
+            {
+                title: 'Pedestrian management',
+                text: 'What pedestrian controls are required when works block a footpath in [jurisdiction] with traffic speed [km/h]?'
+            }
+        ];
+        let backendOnline = false;
+        let currentSessionId = localStorage.getItem('ttmAskSessionId') || '';
+        let sidebarCollapsed = localStorage.getItem('ttmAskSidebarCollapsed');
+
+        function getApiBase() {
+            return apiBase;
+        }
+
+        function getHealthUrl() {
+            return `${getApiBase()}/health`;
+        }
+
+        function updateStartupPanelStatus(message) {
+            const panel = document.getElementById('startupPanel');
+            const badge = document.getElementById('startupBadge');
+            const title = document.getElementById('startupPanelTitle');
+            const subtitle = document.getElementById('startupPanelSubtitle');
+            const openMode = document.getElementById('startupOpenMode');
+            const apiBaseValue = document.getElementById('startupApiBase');
+            const healthUrlValue = document.getElementById('startupHealthUrl');
+            const healthLink = document.getElementById('healthCheckLink');
+            const lastCheck = document.getElementById('startupLastCheck');
+            const apiBaseInput = document.getElementById('apiBaseInput');
+            const hint = document.getElementById('startupHint');
+            const startBtn = document.getElementById('startupStartBtn');
+
+            if (!panel) {
+                return;
+            }
+
+            panel.classList.toggle('open', !backendOnline);
+            badge.textContent = backendOnline ? 'Connected' : 'Offline';
+            badge.style.background = backendOnline ? '#edf8f1' : '#fff3f4';
+            badge.style.borderColor = backendOnline ? '#b9e0c8' : '#f0c6cb';
+            badge.style.color = backendOnline ? '#156f43' : '#a22835';
+            openMode.textContent = IS_FILE_PROTOCOL ? 'file://' : window.location.origin;
+            apiBaseValue.textContent = getApiBase();
+            healthUrlValue.textContent = getHealthUrl();
+            healthLink.href = getHealthUrl();
+            apiBaseInput.value = getApiBase();
+            lastCheck.textContent = message || (backendOnline ? 'Connected' : 'Not connected');
+
+            if (IS_GITHUB_PAGES) {
+                title.textContent = 'Backend server required';
+                subtitle.textContent = 'This is the static GitHub Pages frontend. Set the API URL to a running backend server, then retry.';
+                hint.textContent = 'Default API URL is http://localhost:5000. Use that only if your backend runs on this machine; otherwise enter your server URL.';
+            } else if (IS_FILE_PROTOCOL) {
+                title.textContent = 'Local startup required';
+                subtitle.textContent = 'This page depends on a local backend service. When you open the HTML directly, the assistant cannot continue until the backend responds.';
+                hint.textContent = 'Default local URL: http://localhost:5000. Change it here if your backend runs on a different port or host.';
+            } else {
+                title.textContent = 'Backend startup required';
+                subtitle.textContent = 'This web page needs a reachable backend API service before it can answer questions.';
+                hint.textContent = 'This page is using its current web origin as the backend API base.';
+            }
+            startBtn.style.display = ENABLE_LOCAL_LAUNCHER && !backendOnline ? 'inline-flex' : 'none';
+        }
+
+        function saveApiBase() {
+            const apiBaseInput = document.getElementById('apiBaseInput');
+            const nextApiBase = (apiBaseInput.value || '').trim().replace(/\/+$/, '');
+            if (!nextApiBase) {
+                updateStartupPanelStatus('Enter a backend API URL before saving.');
+                return;
+            }
+
+            apiBase = nextApiBase;
+            localStorage.setItem('ttmAskApiBase', apiBase);
+            updateStartupPanelStatus(`API URL saved: ${apiBase}`);
+        }
+
+        async function retryConnection() {
+            updateStartupPanelStatus('Retrying backend connection...');
+            const online = await checkBackendHealth();
+            if (online) {
+                await loadSidebar();
+            }
+        }
+
+        function persistSessionId(sessionId) {
+            currentSessionId = sessionId || '';
+            if (currentSessionId) {
+                localStorage.setItem('ttmAskSessionId', currentSessionId);
+            } else {
+                localStorage.removeItem('ttmAskSessionId');
+            }
+            const sessionChip = document.getElementById('sessionChip');
+            if (sessionChip) {
+                sessionChip.textContent = currentSessionId ? `Session: ${currentSessionId}` : 'Session: new';
+            }
+        }
+
+        function startNewConversation() {
+            persistSessionId('');
+            const container = document.getElementById('chatContainer');
+            container.innerHTML = '';
+            addMessage('New conversation started. Ask a fresh question or switch on agentic mode for routed retrieval.', 'system');
+            document.getElementById('questionInput').focus();
+        }
+
+        function setSidebarCollapsed(collapsed) {
+            sidebarCollapsed = !!collapsed;
+            document.body.classList.toggle('sidebar-collapsed', sidebarCollapsed);
+            localStorage.setItem('ttmAskSidebarCollapsed', sidebarCollapsed ? '1' : '0');
+
+            const toggleBtn = document.getElementById('sidebarToggleBtn');
+            if (toggleBtn) {
+                toggleBtn.textContent = sidebarCollapsed ? 'Show References' : 'Hide References';
+                toggleBtn.setAttribute('aria-expanded', sidebarCollapsed ? 'false' : 'true');
+            }
+        }
+
+        function toggleSidebar() {
+            setSidebarCollapsed(!sidebarCollapsed);
+        }
+
+        function setBackendStatus(online, message) {
+            const statusEl = document.getElementById('backendStatus');
+            const askButton = document.getElementById('askButton');
+            const startBtn = document.getElementById('startServicesBtn');
+            backendOnline = !!online;
+
+            statusEl.textContent = message;
+            statusEl.classList.toggle('offline', !online);
+            askButton.disabled = !online;
+            askButton.title = online ? '' : 'Start the services first.';
+            // Show Start button only when offline and not already starting
+            if (!startBtn.disabled) {
+                startBtn.style.display = (!ENABLE_LOCAL_LAUNCHER || online) ? 'none' : 'inline-block';
+            }
+            updateStartupPanelStatus(message);
+        }
+
+        async function startServices() {
+            if (!ENABLE_LOCAL_LAUNCHER) {
+                return;
+            }
+            const startBtn = document.getElementById('startServicesBtn');
+            startBtn.disabled = true;
+            startBtn.textContent = '⏳ Starting…';
+            setBackendStatus(false, 'Starting services, please wait…');
+            try {
+                await fetch(`${LAUNCHER_BASE}/start`, { method: 'GET', mode: 'cors' });
+            } catch (e) {
+                // Launcher not running — fall through, health check will show the message
+            }
+            // Let auto-retry take over from here
+            setTimeout(() => {
+                startBtn.disabled = false;
+                startBtn.textContent = '▶ Start Services';
+                checkBackendHealth();
+            }, 4000);
+        }
+
+        async function checkBackendHealth() {
+            try {
+                const response = await fetch(getHealthUrl());
+                if (!response.ok) throw new Error('Backend health check failed.');
+                const data = await response.json();
+                const syncStatus = data.drive_sync?.status || 'not_synced';
+                setBackendStatus(true, `Backend connected. Sync status: ${syncStatus}.`);
+                return true;
+            } catch (error) {
+                const offlineMessage = IS_GITHUB_PAGES
+                    ? 'Backend offline. GitHub Pages hosts only the frontend. Set API URL, then click Retry connection.'
+                    : (ENABLE_LOCAL_LAUNCHER
+                        ? 'Backend offline. Click "▶ Start Services" or open "Start Crompton_AI.vbs". Retrying\u2026'
+                        : 'Backend offline. Check the shared server service and try again.');
+                setBackendStatus(false, offlineMessage);
+                // Auto-retry every 3 seconds until backend comes online
+                setTimeout(async () => {
+                    if (!backendOnline) {
+                        const online = await checkBackendHealth();
+                        if (online) await loadSidebar();
+                    }
+                }, 3000);
+                return false;
+            }
+        }
+
+        // 1. POPULATE SIDEBAR FROM BACKEND INDEX
+        function getJurisdiction(doc) {
+            return doc.jurisdiction || 'Other';
+        }
+
+        function jurisdictionSortValue(name) {
+            const idx = JURISDICTION_ORDER.indexOf(name);
+            return idx === -1 ? JURISDICTION_ORDER.length : idx;
+        }
+
+        function openDocumentPopup(fileUrl, title) {
+            const modal = document.getElementById('documentViewerModal');
+            const frame = document.getElementById('documentViewerFrame');
+            const titleEl = document.getElementById('viewerTitle');
+            const externalLink = document.getElementById('viewerExternalLink');
+
+            titleEl.textContent = title || 'Document viewer';
+            externalLink.href = fileUrl;
+            frame.src = fileUrl;
+            modal.classList.add('open');
+            modal.setAttribute('aria-hidden', 'false');
+        }
+
+        function closeDocumentPopup() {
+            const modal = document.getElementById('documentViewerModal');
+            const frame = document.getElementById('documentViewerFrame');
+            modal.classList.remove('open');
+            modal.setAttribute('aria-hidden', 'true');
+            frame.src = 'about:blank';
+        }
+
+        function appendDocLi(list, doc) {
+            const li = document.createElement('li');
+            const fileUrl = `${getApiBase()}/documents/open?path=${encodeURIComponent(doc.path)}`;
+            li.innerHTML = `
+                <div class="doc-item-head">
+                    <div class="doc-title"></div>
+                    <a class="open-btn" href="#">Open</a>
+                </div>
+                <span></span>
+            `;
+            li.querySelector('.doc-title').textContent = doc.title;
+            li.querySelector('span').textContent = doc.path;
+            li.querySelector('.open-btn').addEventListener('click', (event) => {
+                event.preventDefault();
+                openDocumentPopup(fileUrl, doc.title || 'Reference document');
+            });
+            list.appendChild(li);
+        }
+
+        function appendGroupTitle(list, title) {
+            const li = document.createElement('li');
+            li.className = 'doc-group-title';
+            li.textContent = title;
+            list.appendChild(li);
+        }
+
+        function populateDocumentSelector(documents) {
+            const selector = document.getElementById('documentSelector');
+            const currentValue = selector.value;
+            selector.innerHTML = '<option value="">All Documents (default)</option>';
+
+            const grouped = new Map();
+            [...(documents || [])]
+                .sort((a, b) => {
+                    const groupCmp = jurisdictionSortValue(getJurisdiction(a)) - jurisdictionSortValue(getJurisdiction(b));
+                    if (groupCmp !== 0) return groupCmp;
+                    return (a.title || '').toLowerCase().localeCompare((b.title || '').toLowerCase());
+                })
+                .forEach(doc => {
+                    const jurisdiction = getJurisdiction(doc);
+                    if (!grouped.has(jurisdiction)) {
+                        grouped.set(jurisdiction, []);
+                    }
+                    grouped.get(jurisdiction).push(doc);
+                });
+
+            grouped.forEach((docs, jurisdiction) => {
+                const group = document.createElement('optgroup');
+                group.label = jurisdiction;
+                docs.forEach(doc => {
+                    const opt = document.createElement('option');
+                    opt.value = doc.path || '';
+                    opt.textContent = doc.title || doc.path || 'Document';
+                    group.appendChild(opt);
+                });
+                selector.appendChild(group);
+            });
+
+            if (currentValue && (documents || []).some(doc => (doc.path || '') === currentValue)) {
+                selector.value = currentValue;
+            } else {
+                selector.value = '';
+            }
+        }
+
+        function renderSidebarDocuments(documents) {
+            const list = document.getElementById('documentList');
+            list.innerHTML = '';
+
+            if (!documents || documents.length === 0) {
+                const li = document.createElement('li');
+                li.innerHTML = `<a href="#" onclick="return false;">No files indexed yet</a><span>Status: Not Indexed</span>`;
+                list.appendChild(li);
+                return;
+            }
+
+            populateDocumentSelector(documents);
+            const grouped = new Map();
+            documents.forEach(doc => {
+                const jurisdiction = getJurisdiction(doc);
+                if (!grouped.has(jurisdiction)) {
+                    grouped.set(jurisdiction, []);
+                }
+                grouped.get(jurisdiction).push(doc);
+            });
+
+            Array.from(grouped.entries())
+                .sort((a, b) => jurisdictionSortValue(a[0]) - jurisdictionSortValue(b[0]))
+                .forEach(([jurisdiction, docs]) => {
+                    appendGroupTitle(list, jurisdiction);
+                    docs.forEach(doc => appendDocLi(list, doc));
+                });
+        }
+
+        async function loadSidebar() {
+            try {
+                const response = await fetch(`${getApiBase()}/documents`);
+                const data = await response.json();
+                if (!response.ok) {
+                    throw new Error(data.error || 'Failed to fetch document index.');
+                }
+
+                renderSidebarDocuments(data.documents || []);
+
+                if (data.drive_sync?.last_error) {
+                    setBackendStatus(true, `Backend connected. Last sync warning: ${data.drive_sync.last_error}`);
+                }
+            } catch (error) {
+                renderSidebarDocuments([]);
+                setBackendStatus(
+                    false,
+                    IS_GITHUB_PAGES
+                        ? 'Backend offline. Configure API URL for your backend, then retry connection.'
+                        : 'Backend offline. Start app.py, then refresh this page.'
+                );
+            }
+        }
+
+        // 2. SEARCH & Q&A LOGIC (Backend-connected)
+        async function askQuestion() {
+            if (!backendOnline) {
+                addMessage(
+                    IS_GITHUB_PAGES
+                        ? 'Backend is offline. This GitHub Pages site is frontend-only. Set API URL to your running backend and retry.'
+                        : 'Backend is offline. Start app.py first, then ask your question again.',
+                    'system'
+                );
+                return;
+            }
+
+            const input = document.getElementById('questionInput');
+            const documentSelector = document.getElementById('documentSelector');
+            const strictMode = document.getElementById('strictModeToggle').checked;
+            const useAgentic = document.getElementById('agenticModeToggle').checked;
+            const question = input.value.trim();
+            if (!question) return;
+            const selectedDocument = documentSelector.value;
+
+            addMessage(selectedDocument ? `${question} (${documentSelector.options[documentSelector.selectedIndex].text})` : question, 'user');
+            input.value = '';
+
+            // --- Streaming path (agentic mode) ---
+            if (useAgentic) {
+                const loadingId = addMessage("Searching manuals...", 'system');
+                let streamMsgDiv = null;
+                let streamText = '';
+
+                try {
+                    const response = await fetch(`${getApiBase()}/ask`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            question, selected_document: selectedDocument,
+                            strict_mode: strictMode, use_agentic: true,
+                            stream: true, session_id: currentSessionId || undefined
+                        })
+                    });
+                    if (!response.ok) {
+                        const err = await response.json().catch(() => ({}));
+                        throw new Error(err.error || 'Backend request failed.');
+                    }
+
+                    const reader = response.body.getReader();
+                    const decoder = new TextDecoder();
+                    const chatContainer = document.getElementById('chatContainer');
+                    let buf = '';
+                    let metadata = null;
+
+                    while (true) {
+                        const { done, value } = await reader.read();
+                        if (done) break;
+                        buf += decoder.decode(value, { stream: true });
+                        const lines = buf.split('\n');
+                        buf = lines.pop();
+
+                        for (const line of lines) {
+                            if (!line.startsWith('data: ')) continue;
+                            let evt;
+                            try { evt = JSON.parse(line.slice(6)); } catch { continue; }
+
+                            if (evt.type === 'metadata') {
+                                metadata = evt;
+                                removeMessage(loadingId);
+                                // Create the streaming message bubble
+                                streamMsgDiv = document.createElement('div');
+                                streamMsgDiv.className = 'message system-message';
+                                streamMsgDiv.id = 'msg-stream-' + Date.now();
+                                streamMsgDiv.innerHTML = renderAgentRouting(evt.routing);
+                                chatContainer.appendChild(streamMsgDiv);
+                                chatContainer.scrollTop = chatContainer.scrollHeight;
+                                if (evt.session_id) persistSessionId(evt.session_id);
+
+                            } else if (evt.type === 'token' && streamMsgDiv) {
+                                streamText += evt.content;
+                                // Update text content live — replace answer span
+                                let answerSpan = streamMsgDiv.querySelector('.stream-answer');
+                                if (!answerSpan) {
+                                    answerSpan = document.createElement('div');
+                                    answerSpan.className = 'stream-answer';
+                                    streamMsgDiv.insertBefore(answerSpan, streamMsgDiv.firstChild);
+                                }
+                                answerSpan.innerHTML = renderAnswerWithTables(streamText);
+                                chatContainer.scrollTop = chatContainer.scrollHeight;
+
+                            } else if (evt.type === 'done') {
+                                // Finalise: replace streaming bubble with proper addMessage
+                                if (streamMsgDiv) streamMsgDiv.remove();
+                                streamMsgDiv = null;
+                                addMessage(
+                                    streamText, 'system',
+                                    (metadata && Array.isArray(metadata.sources)) ? metadata.sources : [],
+                                    [],
+                                    null,
+                                    metadata ? metadata.routing : null
+                                );
+                                if (evt.session_id) persistSessionId(evt.session_id);
+                                loadSidebar();
+
+                            } else if (evt.type === 'error') {
+                                removeMessage(loadingId);
+                                if (streamMsgDiv) streamMsgDiv.remove();
+                                streamMsgDiv = null;
+                                addMessage('Error generating answer. Please try again.', 'system');
+                            }
+                        }
+                    }
+                } catch (error) {
+                    removeMessage(loadingId);
+                    if (streamMsgDiv) streamMsgDiv.remove();
+                    setBackendStatus(
+                        false,
+                        IS_GITHUB_PAGES
+                            ? 'Backend offline. Configure API URL for your backend, then retry connection.'
+                            : 'Backend offline. Start app.py, then refresh this page.'
+                    );
+                    addMessage(error.message || 'Error connecting to the backend server.', 'system');
+                }
+                return;
+            }
+
+            // --- Non-streaming path (standard mode) ---
+            const loadingId = addMessage("Searching manuals...", 'system');
+
+            try {
+                // Send the question to your Python server
+                const response = await fetch(`${getApiBase()}/ask`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        question: question,
+                        selected_document: selectedDocument,
+                        strict_mode: strictMode,
+                        use_agentic: useAgentic,
+                        session_id: currentSessionId || undefined
+                    })
+                });
+                
+                const data = await response.json();
+                if (!response.ok) {
+                    if (data.error_code === 'gemini_auth_error') {
+                        throw Object.assign(new Error('gemini_auth_error'), { isGeminiAuthError: true });
+                    }
+                    throw new Error(data.error || 'Backend request failed.');
+                }
+                
+                // Remove loading message and show the real answer
+                removeMessage(loadingId);
+                if (data.session_id) {
+                    persistSessionId(data.session_id);
+                }
+                addMessage(
+                    data.answer,
+                    'system',
+                    data.sources || [],
+                    data.snippets || [],
+                    data.question_analysis || null,
+                    data.agent_routing || null
+                );
+                loadSidebar();
+                
+            } catch (error) {
+                removeMessage(loadingId);
+                if (error.isGeminiAuthError) {
+                    addMessage(
+                        'Gemini authentication failed.\n\n' +
+                        '1. Set GOOGLE_API_KEY to a valid Gemini API key on the backend machine.\n' +
+                        '2. Restart the backend service.\n' +
+                        '3. Retry your question.',
+                        'system'
+                    );
+                } else {
+                    setBackendStatus(
+                        false,
+                        IS_GITHUB_PAGES
+                            ? 'Backend offline. Configure API URL for your backend, then retry connection.'
+                            : 'Backend offline. Start app.py, then refresh this page.'
+                    );
+                    addMessage(error.message || 'Error connecting to the backend server.', 'system');
+                }
+            }
+        }
+
+        // 3. UI HELPER FUNCTIONS
+        function escapeHtml(value) {
+            return String(value)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        function parseTableRow(line) {
+            let normalized = line.trim();
+            if (normalized.startsWith('|')) normalized = normalized.slice(1);
+            if (normalized.endsWith('|')) normalized = normalized.slice(0, -1);
+            return normalized.split('|').map(cell => cell.trim());
+        }
+
+        function isTableDivider(line) {
+            const normalized = line.trim().replace(/^\|/, '').replace(/\|$/, '');
+            if (!normalized) return false;
+            return normalized.split('|').every(part => /^:?-{3,}:?$/.test(part.trim()));
+        }
+
+        function renderAnswerWithTables(text) {
+            const lines = String(text || '').replace(/\r\n/g, '\n').split('\n');
+            let i = 0;
+            let html = '';
+
+            while (i < lines.length) {
+                const current = lines[i] || '';
+                const next = i + 1 < lines.length ? (lines[i + 1] || '') : '';
+                const tableStart = current.includes('|') && isTableDivider(next);
+
+                if (tableStart) {
+                    const headers = parseTableRow(current);
+                    i += 2;
+
+                    const rows = [];
+                    while (i < lines.length && (lines[i] || '').includes('|')) {
+                        rows.push(parseTableRow(lines[i]));
+                        i += 1;
+                    }
+
+                    let tableHtml = '<table class="answer-table"><thead><tr>';
+                    headers.forEach(h => {
+                        tableHtml += `<th>${escapeHtml(h)}</th>`;
+                    });
+                    tableHtml += '</tr></thead><tbody>';
+                    rows.forEach(row => {
+                        tableHtml += '<tr>';
+                        headers.forEach((_, idx) => {
+                            tableHtml += `<td>${escapeHtml(row[idx] || '')}</td>`;
+                        });
+                        tableHtml += '</tr>';
+                    });
+                    tableHtml += '</tbody></table>';
+
+                    html += tableHtml;
+                    if (i < lines.length) html += '<br>';
+                } else {
+                    html += `${escapeHtml(current)}<br>`;
+                    i += 1;
+                }
+            }
+
+            return html.replace(/(<br>)+$/g, '');
+        }
+
+        function renderQuestionAnalysis(analysis) {
+            if (!analysis || typeof analysis !== 'object') return '';
+
+            const facts = analysis.facts || {};
+            const missing = Array.isArray(analysis.missing_critical_inputs) ? analysis.missing_critical_inputs : [];
+
+            const detectedItems = Object.entries(facts)
+                .filter(([, value]) => value !== null && value !== false)
+                .map(([key, value]) => `<li>${escapeHtml(key)}: ${escapeHtml(String(value))}</li>`);
+
+            const missingItems = missing.map(item => `<li>${escapeHtml(String(item))}</li>`);
+
+            const strictBadge = analysis.strict_mode ? 'ON' : 'OFF';
+            const ambiguity = analysis.is_ambiguous ? 'AMBIGUOUS' : 'CLEAR';
+
+            return `
+                <div class="analysis-card">
+                    <div class="analysis-title">Question analysis • Strict mode ${escapeHtml(strictBadge)} • ${escapeHtml(ambiguity)}</div>
+                    <div class="analysis-grid">
+                        <div class="analysis-col">
+                            <h4>Detected inputs</h4>
+                            <ul class="analysis-list">${detectedItems.length ? detectedItems.join('') : '<li>No reliable inputs detected</li>'}</ul>
+                        </div>
+                        <div class="analysis-col">
+                            <h4>Missing critical inputs</h4>
+                            <ul class="analysis-list">${missingItems.length ? missingItems.join('') : '<li>None</li>'}</ul>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderFollowUpSuggestions(analysis) {
+            if (!analysis || typeof analysis !== 'object') return null;
+            const suggestions = Array.isArray(analysis.follow_up_questions) ? analysis.follow_up_questions : [];
+            if (!suggestions.length) return null;
+
+            const wrap = document.createElement('div');
+            wrap.className = 'followup-wrap';
+
+            suggestions.forEach((question) => {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'followup-btn';
+                btn.textContent = question;
+                btn.addEventListener('click', () => {
+                    const input = document.getElementById('questionInput');
+                    input.value = question;
+                    input.focus();
+                });
+                wrap.appendChild(btn);
+            });
+
+            return wrap;
+        }
+
+        function renderAgentRouting(routing) {
+            if (!routing || typeof routing !== 'object') return '';
+
+            const mode = routing.mode || 'standard';
+            const decision = routing.router_decision || 'n/a';
+            const confidence = Number.isFinite(Number(routing.router_confidence))
+                ? `${Math.round(Number(routing.router_confidence) * 100)}%`
+                : 'n/a';
+            const retrieved = Number.isFinite(Number(routing.num_documents_retrieved))
+                ? String(routing.num_documents_retrieved)
+                : '0';
+            const queries = Array.isArray(routing.search_queries) ? routing.search_queries : [];
+
+            return `
+                <div class="response-meta">
+                    <div class="response-meta-title">Agent routing</div>
+                    <div class="response-meta-grid">
+                        <div class="response-meta-card">
+                            <span class="response-meta-label">Mode</span>
+                            <span class="response-meta-value">${escapeHtml(mode)}</span>
+                        </div>
+                        <div class="response-meta-card">
+                            <span class="response-meta-label">Router decision</span>
+                            <span class="response-meta-value">${escapeHtml(decision)}</span>
+                        </div>
+                        <div class="response-meta-card">
+                            <span class="response-meta-label">Router confidence</span>
+                            <span class="response-meta-value">${escapeHtml(confidence)}</span>
+                        </div>
+                        <div class="response-meta-card">
+                            <span class="response-meta-label">Documents retrieved</span>
+                            <span class="response-meta-value">${escapeHtml(retrieved)}</span>
+                        </div>
+                    </div>
+                    ${queries.length ? `<div class="query-pills" style="margin-top:10px;">${queries.map(query => `<span class="query-pill">${escapeHtml(query)}</span>`).join('')}</div>` : ''}
+                </div>
+            `;
+        }
+
+        function groupByFamily(items) {
+            const grouped = new Map();
+            (items || []).forEach((item) => {
+                const family = item && item.family ? item.family : 'Other references';
+                if (!grouped.has(family)) {
+                    grouped.set(family, []);
+                }
+                grouped.get(family).push(item);
+            });
+            return grouped;
+        }
+
+        function initializePromptTemplates() {
+            const tools = document.getElementById('promptTools');
+            tools.innerHTML = '';
+
+            const menu = document.createElement('div');
+            menu.className = 'template-menu';
+
+            const toggle = document.createElement('button');
+            toggle.type = 'button';
+            toggle.className = 'template-btn';
+            toggle.textContent = 'Use template';
+
+            const panel = document.createElement('div');
+            panel.className = 'template-panel';
+
+            const closePanel = () => {
+                panel.classList.remove('open');
+                toggle.setAttribute('aria-expanded', 'false');
+            };
+
+            toggle.setAttribute('aria-expanded', 'false');
+            toggle.addEventListener('click', (event) => {
+                event.stopPropagation();
+                const open = panel.classList.toggle('open');
+                toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+            });
+
+            QUESTION_TEMPLATES.forEach((template) => {
+                const option = document.createElement('button');
+                option.type = 'button';
+                option.className = 'template-option';
+                option.innerHTML = `
+                    <span class="template-option-title">${escapeHtml(template.title)}</span>
+                    <span class="template-option-text">${escapeHtml(template.text)}</span>
+                `;
+                option.addEventListener('click', () => {
+                    const input = document.getElementById('questionInput');
+                    input.value = template.text;
+                    input.focus();
+                    closePanel();
+                });
+                panel.appendChild(option);
+            });
+
+            document.addEventListener('click', (event) => {
+                if (!menu.contains(event.target)) {
+                    closePanel();
+                }
+            });
+
+            menu.appendChild(toggle);
+            menu.appendChild(panel);
+            tools.appendChild(menu);
+        }
+
+        function addMessage(text, sender, sources = [], snippets = [], analysis = null, agentRouting = null) {
+            const container = document.getElementById('chatContainer');
+            const msgDiv = document.createElement('div');
+            msgDiv.className = `message ${sender}-message`;
+            if (sender === 'system') {
+                msgDiv.innerHTML = renderAnswerWithTables(text);
+            } else {
+                msgDiv.textContent = text;
+            }
+
+            if (sender === 'system' && analysis) {
+                msgDiv.innerHTML += renderQuestionAnalysis(analysis);
+                const followUps = renderFollowUpSuggestions(analysis);
+                if (followUps) {
+                    msgDiv.appendChild(followUps);
+                }
+            }
+
+            if (sender === 'system' && agentRouting) {
+                msgDiv.innerHTML += renderAgentRouting(agentRouting);
+            }
+
+            if (sender === 'system') {
+                const sourceObjects = (Array.isArray(sources) ? sources : [])
+                    .filter((item) => item && typeof item === 'object');
+                const snippetObjects = (Array.isArray(snippets) ? snippets : [])
+                    .filter((item) => item && typeof item === 'object');
+                const previewCandidate = [...sourceObjects, ...snippetObjects].find((item) => {
+                    const page = Number(item.page);
+                    return item.path && Number.isFinite(page) && page > 0;
+                });
+
+                if (previewCandidate) {
+                    const page = Number(previewCandidate.page);
+                    const title = previewCandidate.title || 'Cited source';
+
+                    const previewWrap = document.createElement('div');
+                    previewWrap.className = 'excerpts-section';
+                    previewWrap.style.marginTop = '10px';
+
+                    const previewMeta = document.createElement('div');
+                    previewMeta.className = 'excerpt-meta';
+                    previewMeta.textContent = `Cited page snapshot: ${title} (Page ${page})`;
+
+                    const previewLink = document.createElement('a');
+                    previewLink.href = '#';
+                    previewLink.className = 'source-link';
+                    previewLink.textContent = 'Open full document at this page';
+                    previewLink.style.display = 'inline-block';
+                    previewLink.style.margin = '6px 0';
+                    previewLink.addEventListener('click', (event) => {
+                        event.preventDefault();
+                        openDocumentPopup(
+                            `${getApiBase()}/documents/open?path=${encodeURIComponent(previewCandidate.path || '')}#page=${page}`,
+                            `${title} (Page ${page})`
+                        );
+                    });
+
+                    const previewImage = document.createElement('img');
+                    previewImage.className = 'excerpt-image';
+                    previewImage.style.display = 'block';
+                    previewImage.style.maxWidth = 'min(100%, 680px)';
+                    previewImage.alt = `Page ${page} preview for ${title}`;
+                    previewImage.src = `${getApiBase()}/documents/page-image?path=${encodeURIComponent(previewCandidate.path || '')}&page=${page}`;
+
+                    previewWrap.appendChild(previewMeta);
+                    previewWrap.appendChild(previewLink);
+                    previewWrap.appendChild(previewImage);
+                    msgDiv.appendChild(previewWrap);
+                }
+            }
+            
+            // Generate unique ID for this message
+            const messageId = 'msg-' + Date.now() + '-' + Math.random();
+            msgDiv.id = messageId;
+
+            if (Array.isArray(sources) && sources.length > 0) {
+                msgDiv.appendChild(document.createElement('br'));
+
+                const sourceWrap = document.createElement('div');
+                sourceWrap.className = 'source-links';
+
+                const sourceLabel = document.createElement('span');
+                sourceLabel.className = 'source-tag';
+                sourceLabel.textContent = 'Source:';
+                sourceWrap.appendChild(sourceLabel);
+
+                const groupedSources = groupByFamily(sources.map((source) => typeof source === 'string' ? { title: source, family: 'Other references' } : source));
+                groupedSources.forEach((familySources, familyName) => {
+                    const familyGroup = document.createElement('div');
+                    familyGroup.className = 'source-family-group';
+
+                    const familyTitle = document.createElement('span');
+                    familyTitle.className = 'source-family-title';
+                    familyTitle.textContent = familyName;
+                    familyGroup.appendChild(familyTitle);
+
+                    familySources.forEach(source => {
+                        const sourceLink = document.createElement('a');
+                        sourceLink.className = 'source-link';
+
+                        if (typeof source === 'string') {
+                            sourceLink.textContent = source;
+                            sourceLink.href = '#';
+                            sourceLink.onclick = (e) => e.preventDefault();
+                        } else {
+                            const title = source.title || 'Open source';
+                            const page = Number(source.page);
+                            const refs = Array.isArray(source.refs) ? source.refs.filter(Boolean) : [];
+                            const pageSuffix = Number.isFinite(page) && page > 0 ? ` (Page ${page})` : '';
+                            const refSuffix = refs.length ? ` · ${refs.join(', ')}` : '';
+                            const pageAnchor = Number.isFinite(page) && page > 0 ? `#page=${page}` : '';
+                            sourceLink.textContent = `${title}${pageSuffix}${refSuffix}`;
+                            sourceLink.href = '#';
+                            sourceLink.addEventListener('click', (event) => {
+                                event.preventDefault();
+                                openDocumentPopup(
+                                    `${getApiBase()}/documents/open?path=${encodeURIComponent(source.path || '')}${pageAnchor}`,
+                                    `${familyName} · ${title}${pageSuffix}`
+                                );
+                            });
+                        }
+
+                        familyGroup.appendChild(sourceLink);
+                    });
+
+                    sourceWrap.appendChild(familyGroup);
+                });
+
+                msgDiv.appendChild(sourceWrap);
+            }
+
+            // Show text excerpts from retrieved chunks
+            if (sender === 'system' && Array.isArray(snippets) && snippets.length > 0) {
+                const excSection = document.createElement('div');
+                excSection.className = 'excerpts-section';
+
+                const toggleBtn = document.createElement('button');
+                toggleBtn.className = 'excerpts-toggle';
+                const arrow = document.createElement('span');
+                arrow.className = 'toggle-arrow';
+                arrow.textContent = '▶';
+                toggleBtn.appendChild(arrow);
+                toggleBtn.appendChild(document.createTextNode(` View ${snippets.length} source excerpt${snippets.length > 1 ? 's' : ''}`));
+
+                const excList = document.createElement('div');
+                excList.className = 'excerpts-list';
+
+                const groupedSnippets = groupByFamily(snippets);
+                groupedSnippets.forEach((familySnippets, familyName) => {
+                    const familyBlock = document.createElement('div');
+                    familyBlock.className = 'excerpt-family-block';
+
+                    const familyTitle = document.createElement('div');
+                    familyTitle.className = 'excerpt-family-title';
+                    familyTitle.textContent = familyName;
+                    familyBlock.appendChild(familyTitle);
+
+                    familySnippets.forEach(snippet => {
+                        const item = document.createElement('div');
+                        item.className = 'excerpt-item';
+                        const page = Number(snippet.page);
+                        const refs = Array.isArray(snippet.refs) ? snippet.refs.filter(Boolean) : [];
+                        const pageTxt = Number.isFinite(page) && page > 0 ? ` · p.${page}` : '';
+                        item.innerHTML = `<div class="excerpt-meta">${escapeHtml(snippet.title || '')}${pageTxt}</div>` +
+                            (refs.length ? `<div class="excerpt-refs">References: ${escapeHtml(refs.join(', '))}</div>` : '') +
+                            `${escapeHtml(snippet.text || '')}`.replace(/\n/g, '<br>');
+
+                        if (Number.isFinite(page) && page > 0 && snippet.path) {
+                            const imageToggle = document.createElement('button');
+                            imageToggle.type = 'button';
+                            imageToggle.className = 'excerpt-image-toggle';
+                            imageToggle.textContent = 'Show cited page image';
+
+                            const image = document.createElement('img');
+                            image.className = 'excerpt-image';
+                            image.alt = `Page ${page} preview for ${snippet.title || 'source'}`;
+
+                            imageToggle.addEventListener('click', () => {
+                                const isVisible = image.style.display === 'block';
+                                if (!image.src) {
+                                    image.src = `${getApiBase()}/documents/page-image?path=${encodeURIComponent(snippet.path || '')}&page=${page}`;
+                                }
+                                image.style.display = isVisible ? 'none' : 'block';
+                                imageToggle.textContent = isVisible ? 'Show cited page image' : 'Hide cited page image';
+                            });
+
+                            item.appendChild(document.createElement('br'));
+                            item.appendChild(imageToggle);
+                            item.appendChild(image);
+                        }
+                        familyBlock.appendChild(item);
+                    });
+
+                    excList.appendChild(familyBlock);
+                });
+
+                toggleBtn.addEventListener('click', () => {
+                    const isOpen = excList.style.display === 'flex';
+                    excList.style.display = isOpen ? 'none' : 'flex';
+                    toggleBtn.classList.toggle('open', !isOpen);
+                });
+
+                excSection.appendChild(toggleBtn);
+                excSection.appendChild(excList);
+                msgDiv.appendChild(excSection);
+            }
+
+            container.appendChild(msgDiv);
+            container.scrollTop = container.scrollHeight; // Auto-scroll to bottom
+            
+            return messageId;
+        }
+
+        function removeMessage(messageId) {
+            const msgDiv = document.getElementById(messageId);
+            if (msgDiv) {
+                msgDiv.remove();
+            }
+        }
+
+        function handleKeyPress(event) {
+            if (event.key === 'Enter') {
+                askQuestion();
+            }
+        }
+
+        // Initialize
+        window.onload = async function initializeApp() {
+            initializePromptTemplates();
+            persistSessionId(currentSessionId);
+            if (sidebarCollapsed === null) {
+                setSidebarCollapsed(true);
+            } else {
+                setSidebarCollapsed(sidebarCollapsed === '1');
+            }
+            document.getElementById('viewerCloseBtn').addEventListener('click', closeDocumentPopup);
+            document.getElementById('documentViewerModal').addEventListener('click', (event) => {
+                if (event.target.id === 'documentViewerModal') {
+                    closeDocumentPopup();
+                }
+            });
+            document.addEventListener('keydown', (event) => {
+                if (event.key === 'Escape') {
+                    closeDocumentPopup();
+                }
+            });
+            document.getElementById('startupStartBtn').addEventListener('click', startServices);
+            document.getElementById('retryConnectionBtn').addEventListener('click', retryConnection);
+            document.getElementById('saveApiBaseBtn').addEventListener('click', async () => {
+                saveApiBase();
+                await retryConnection();
+            });
+            updateStartupPanelStatus('Waiting for first backend check...');
+            const online = await checkBackendHealth();
+            if (online) {
+                await loadSidebar();
+            } else {
+                renderSidebarDocuments([]);
+            }
+        };
+    </script>
+</body>
+</html>
