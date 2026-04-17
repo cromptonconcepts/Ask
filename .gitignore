@@ -1,10 +1,16 @@
-# Python virtual environments
+# Local environment and secrets
+.env
+.env.*
+!.env.example
+
+# Local Python environments
 .venv/
 venv/
-ENV/
 env/
+ENV/
+.python-version
 
-# Python cache and build artifacts
+# Python cache and tooling
 __pycache__/
 *.py[cod]
 *.pyo
@@ -15,15 +21,26 @@ __pycache__/
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/
-.coverage
-htmlcov/
+.ipynb_checkpoints/
+
+# Build, test, and coverage artifacts
 build/
 dist/
+out/
+htmlcov/
+.coverage
+coverage.xml
 
-# Local databases and logs
+# Local runtime data
+logs/
+*.log
 *.sqlite
 *.sqlite3
-logs/
+*.db
+chroma_db/
+
+# Front-end dependencies
+node_modules/
 
 # IDE/editor
 .vscode/
@@ -32,3 +49,4 @@ logs/
 # OS files
 .DS_Store
 Thumbs.db
+desktop.ini
